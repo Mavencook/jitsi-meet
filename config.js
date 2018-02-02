@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars, no-var */
 
+
 var config = {
     // Configuration
     //
@@ -253,8 +254,9 @@ var config = {
 
     // To enable sending statistics to callstats.io you must provide the
     // Application ID and Secret.
-    // callStatsID: '',
-    // callStatsSecret: '',
+    remoteUserID: 'mavencook',
+    'callStatsID': "976551674",
+    'callStatsSecret': "C7bJJGZCNE7c:WGNvWKR+DEPpBvfcS5fYMNAO90/gkZTEFc/hCl21uvY=",
 
     // enables callstatsUsername to be reported as statsId and used
     // by callstats as repoted remote id
@@ -286,7 +288,7 @@ var config = {
         enabled: true,
 
         // Use XEP-0215 to fetch STUN and TURN servers.
-        // useStunTurn: true,
+        useStunTurn: true,
 
         // The STUN servers that will be used in the peer to peer connections
         stunServers: [

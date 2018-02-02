@@ -234,7 +234,7 @@ class Conference extends Component<Props> {
                     <Filmstrip />
                 </View>
 
-                <ConferenceNotification />
+                
 
                 {/*
                   * The dialogs are in the topmost stacking layers.

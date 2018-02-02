@@ -263,7 +263,6 @@ function _loadConfig({ contextRoot, host, protocol, room }) {
             } catch (e) {
                 // Ignore the error because the caching is optional.
             }
-
             return config;
         },
         /* onRejected */ error => {

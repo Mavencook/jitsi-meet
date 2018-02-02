@@ -1,7 +1,7 @@
 // @flow
 
 import React, { Component } from 'react';
-import { ScrollView } from 'react-native';
+import { View, ScrollView, Text } from 'react-native';
 import { connect } from 'react-redux';
 
 import { Container } from '../../base/react';
@@ -79,9 +79,11 @@ class Filmstrip extends Component<Props> {
                                 this.props._participants,
                                 isNarrowAspectRatio_)
                             .map(p =>
-                                <Thumbnail
-                                    key = { p.id }
-                                    participant = { p } />)
+                                
+                                    <Thumbnail
+                                        key = { p.id }
+                                        participant = { p } />
+                            )
 
                         /* eslint-enable react/jsx-wrap-multilines */
                     }

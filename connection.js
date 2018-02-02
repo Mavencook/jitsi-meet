@@ -72,6 +72,7 @@ function checkForAttachParametersAndConnect(id, password, connection) {
  * everything is ok, else error.
  */
 function connect(id, password, roomName) {
+    debugger
     const connectionConfig = Object.assign({}, config);
     const { issuer, jwt } = APP.store.getState()['features/base/jwt'];
 

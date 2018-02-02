@@ -26,7 +26,7 @@ import { equals } from './features/base/redux';
  *
  * @extends Component
  */
-class Root extends Component {
+export default class Root extends Component {
     /**
      * {@code Root} component's property types.
      *
@@ -158,4 +158,4 @@ class Root extends Component {
 }
 
 // Register the main/root Component.
-AppRegistry.registerComponent('App', () => Root);
+//AppRegistry.registerComponent('App', () => Root);

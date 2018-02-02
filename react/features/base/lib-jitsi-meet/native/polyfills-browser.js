@@ -98,7 +98,6 @@ function _visitNode(node, callback) {
 
 (global => {
     const { DOMParser } = require('xmldom');
-
     // addEventListener
     //
     // Required by:
@@ -400,7 +399,7 @@ function _visitNode(node, callback) {
     //
     // Required by:
     // - lib-jitsi-meet
-    // - Strophe
+    // // - Strophe
     global.clearTimeout = BackgroundTimer.clearTimeout.bind(BackgroundTimer);
     global.clearInterval = BackgroundTimer.clearInterval.bind(BackgroundTimer);
     global.setInterval = BackgroundTimer.setInterval.bind(BackgroundTimer);

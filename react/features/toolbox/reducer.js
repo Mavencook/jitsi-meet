@@ -51,7 +51,7 @@ function _getInitialState() {
          *
          * @type {boolean}
          */
-        alwaysVisible: false,
+        alwaysVisible: true,
 
         /**
          * The indicator which determines whether the Toolbox is enabled. For
@@ -118,7 +118,7 @@ function _getInitialState() {
          *
          * @type {boolean}
          */
-        visible: false
+        visible: true
     };
 }
 

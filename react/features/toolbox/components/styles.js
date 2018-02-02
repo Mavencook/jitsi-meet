@@ -109,10 +109,9 @@ export default createStyleSheet({
      */
     secondaryToolbar: {
         ..._toolbar,
-        bottom: 0,
+        bottom: 30,
         flexDirection: 'column',
         right: 0,
-        top: 0
     },
 
     /**

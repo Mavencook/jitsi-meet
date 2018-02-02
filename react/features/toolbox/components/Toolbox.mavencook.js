@@ -1,16 +1,12 @@
-// @flow
-
-import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+import React from 'react';
 import { View } from 'react-native';
 import { connect } from 'react-redux';
 
 import {
-    AUDIO_MUTE,
-    VIDEO_MUTE,
-    createToolbarEvent,
-    sendAnalytics
-} from '../../analytics';
-import { toggleAudioOnly } from '../../base/conference';
+    isNarrowAspectRatio,
+    makeAspectRatioAware
+} from '../../base/responsive-ui';
 import {
     MEDIA_TYPE,
     setAudioMuted,
@@ -19,16 +15,6 @@ import {
     VIDEO_MUTISM_AUTHORITY
 } from '../../base/media';
 import { Container } from '../../base/react';
-import {
-    isNarrowAspectRatio,
-    makeAspectRatioAware
-} from '../../base/responsive-ui';
-import { ColorPalette } from '../../base/styles';
-import {
-    EnterPictureInPictureToolbarButton
-} from '../../mobile/picture-in-picture';
-import { beginRoomLockRequest } from '../../room-lock';
-import { beginShareRoom } from '../../share-room';
 
 import {
     abstractMapDispatchToProps,
@@ -39,6 +25,8 @@ import AudioRouteButton from './AudioRouteButton';
 import styles from './styles';
 import ToolbarButton from './ToolbarButton';
 
+import { Toolbox as JToolbox } from './Toolbox';
+
 /**
  * The indicator which determines (at bundle time) whether there should be a
  * {@code ToolbarButton} in {@code Toolbox} to expose the functionality of the
@@ -47,90 +35,14 @@ import ToolbarButton from './ToolbarButton';
  * @private
  * @type {boolean}
  */
-const _SHARE_ROOM_TOOLBAR_BUTTON = true;
-
-/**
- * The type of {@link Toolbox}'s React {@code Component} props.
- */
-type Props = {
-
-    /**
-     * Flag showing that audio is muted.
-     */
-    _audioMuted: boolean,
-
-    /**
-     * Flag showing whether the audio-only mode is in use.
-     */
-    _audioOnly: boolean,
-
-    /**
-     * The indicator which determines whether the toolbox is enabled.
-     */
-    _enabled: boolean,
-
-    /**
-     * Flag showing whether room is locked.
-     */
-    _locked: boolean,
-
-    /**
-     * Handler for hangup.
-     */
-    _onHangup: Function,
-
-    /**
-     * Sets the lock i.e. password protection of the conference/room.
-     */
-    _onRoomLock: Function,
-
-    /**
-     * Begins the UI procedure to share the conference/room URL.
-     */
-    _onShareRoom: Function,
-
-    /**
-     * Toggles the audio-only flag of the conference.
-     */
-    _onToggleAudioOnly: Function,
-
-    /**
-     * Switches between the front/user-facing and back/environment-facing
-     * cameras.
-     */
-    _onToggleCameraFacingMode: Function,
-
-    /**
-     * Flag showing whether video is muted.
-     */
-    _videoMuted: boolean,
-
-    /**
-     * Flag showing whether toolbar is visible.
-     */
-    _visible: boolean,
-
-    dispatch: Function
-};
-
+const _SHARE_ROOM_TOOLBAR_BUTTON = false;
+const _LOCK_ROOM_TOOLBAR_BUTTON = false;
+const _VISIBILITY_TOOLBAR_BUTTON = false;
 
 /**
  * Implements the conference toolbox on React Native.
  */
-export class Toolbox extends Component<Props> {
-    /**
-     * Initializes a new {@code Toolbox} instance.
-     *
-     * @param {Props} props - The read-only React {@code Component} props with
-     * which the new instance is to be initialized.
-     */
-    constructor(props: Props) {
-        super(props);
-
-        // Bind event handlers so they are only bound once per instance.
-        this._onToggleAudio = this._onToggleAudio.bind(this);
-        this._onToggleVideo = this._onToggleVideo.bind(this);
-    }
+export class Toolbox extends JToolbox {
 
     /**
      * Implements React's {@link Component#render()}.
@@ -139,10 +51,6 @@ export class Toolbox extends Component<Props> {
      * @returns {ReactElement}
      */
     render() {
-        if (!this.props._enabled) {
-            return null;
-        }
-
         const toolboxStyle
             = isNarrowAspectRatio(this)
                 ? styles.toolboxNarrow
@@ -151,105 +59,10 @@ export class Toolbox extends Component<Props> {
         return (
             <Container
                 style = { toolboxStyle }
-                visible = { this.props._visible } >
+                visible = { true || this.props._visible } >
                 { this._renderToolbars() }
             </Container>
         );
-    }
-
-    /**
-     * Gets the styles for a button that toggles the mute state of a specific
-     * media type.
-     *
-     * @param {string} mediaType - The {@link MEDIA_TYPE} associated with the
-     * button to get styles for.
-     * @protected
-     * @returns {{
-     *     iconName: string,
-     *     iconStyle: Object,
-     *     style: Object
-     * }}
-     */
-    _getMuteButtonStyles(mediaType) {
-        let iconName;
-        let iconStyle;
-        let style;
-
-        if (this.props[`_${mediaType}Muted`]) {
-            iconName = `${mediaType}MutedIcon`;
-            iconStyle = styles.whitePrimaryToolbarButtonIcon;
-            style = styles.whitePrimaryToolbarButton;
-        } else {
-            iconName = `${mediaType}Icon`;
-            iconStyle = styles.primaryToolbarButtonIcon;
-            style = styles.primaryToolbarButton;
-        }
-
-        return {
-
-            // $FlowExpectedError
-            iconName: this[iconName],
-            iconStyle,
-            style
-        };
-    }
-
-    _onToggleAudio: () => void;
-
-    /**
-     * Dispatches an action to toggle the mute state of the audio/microphone.
-     *
-     * @private
-     * @returns {void}
-     */
-    _onToggleAudio() {
-        const mute = !this.props._audioMuted;
-
-        sendAnalytics(createToolbarEvent(
-            AUDIO_MUTE,
-            {
-                enable: mute
-            }));
-
-        // The user sees the reality i.e. the state of base/tracks and intends
-        // to change reality by tapping on the respective button i.e. the user
-        // sets the state of base/media. Whether the user's intention will turn
-        // into reality is a whole different story which is of no concern to the
-        // tapping.
-        this.props.dispatch(
-            setAudioMuted(
-                mute,
-                VIDEO_MUTISM_AUTHORITY.USER,
-                /* ensureTrack */ true));
-    }
-
-    _onToggleVideo: () => void;
-
-    /**
-     * Dispatches an action to toggle the mute state of the video/camera.
-     *
-     * @private
-     * @returns {void}
-     */
-    _onToggleVideo() {
-        const mute = !this.props._videoMuted;
-
-        sendAnalytics(createToolbarEvent(
-            VIDEO_MUTE,
-            {
-                enable: mute
-            }));
-
-        // The user sees the reality i.e. the state of base/tracks and intends
-        // to change reality by tapping on the respective button i.e. the user
-        // sets the state of base/media. Whether the user's intention will turn
-        // into reality is a whole different story which is of no concern to the
-        // tapping.
-        this.props.dispatch(
-            setVideoMuted(
-                !this.props._videoMuted,
-                VIDEO_MUTISM_AUTHORITY.USER,
-                /* ensureTrack */ true));
     }
 
     /**
@@ -286,7 +99,7 @@ export class Toolbox extends Component<Props> {
                     iconName = { videoButtonStyles.iconName }
                     iconStyle = { videoButtonStyles.iconStyle }
                     onClick = { this._onToggleVideo }
-                    style = { videoButtonStyles.style } />
+                    style = {{ ...videoButtonStyles.style, ...style }} />
             </View>
         );
 
@@ -301,6 +114,7 @@ export class Toolbox extends Component<Props> {
      * @returns {ReactElement}
      */
     _renderSecondaryToolbar() {
+        const audioButtonStyles = this._getMuteButtonStyles(MEDIA_TYPE.AUDIO);
         const iconStyle = styles.secondaryToolbarButtonIcon;
         const style = styles.secondaryToolbarButton;
         const underlayColor = 'transparent';
@@ -330,22 +144,21 @@ export class Toolbox extends Component<Props> {
                     onClick = { this.props._onToggleCameraFacingMode }
                     style = { style }
                     underlayColor = { underlayColor } />
-                <ToolbarButton
+                { _VISIBILITY_TOOLBAR_BUTTON && <ToolbarButton
                     iconName = { audioOnly ? 'visibility-off' : 'visibility' }
                     iconStyle = { iconStyle }
                     onClick = { this.props._onToggleAudioOnly }
                     style = { style }
-                    underlayColor = { underlayColor } />
-                <ToolbarButton
+                    underlayColor = { underlayColor } />}
+                { _LOCK_ROOM_TOOLBAR_BUTTON && <ToolbarButton
                     iconName = {
                         this.props._locked ? 'security-locked' : 'security'
                     }
                     iconStyle = { iconStyle }
                     onClick = { this.props._onRoomLock }
                     style = { style }
-                    underlayColor = { underlayColor } />
-                {
-                    _SHARE_ROOM_TOOLBAR_BUTTON
+                    underlayColor = { underlayColor } />}
+                { _SHARE_ROOM_TOOLBAR_BUTTON
                         && <ToolbarButton
                             iconName = 'link'
                             iconStyle = { iconStyle }
@@ -353,8 +166,10 @@ export class Toolbox extends Component<Props> {
                             style = { style }
                             underlayColor = { underlayColor } />
                 }
-                <EnterPictureInPictureToolbarButton
+                 <ToolbarButton
+                    iconName = { this.props._audioMuted ? 'mic-disabled' : 'microphone' } 
                     iconStyle = { iconStyle }
+                    onClick = { this._onToggleAudio }
                     style = { style }
                     underlayColor = { underlayColor } />
             </View>
@@ -372,18 +187,16 @@ export class Toolbox extends Component<Props> {
     _renderToolbars() {
         return [
             this._renderSecondaryToolbar(),
-            this._renderPrimaryToolbar()
+            ///this._renderPrimaryToolbar()
         ];
     }
 }
-
 /**
  * Additional properties for various icons, which are now platform-dependent.
  * This is done to have common logic of generating styles for web and native.
  * TODO As soon as we have common font sets for web and native, this will no
  * longer be required.
  */
-// $FlowExpectedError
 Object.assign(Toolbox.prototype, {
     audioIcon: 'microphone',
     audioMutedIcon: 'mic-disabled',
@@ -392,15 +205,15 @@ Object.assign(Toolbox.prototype, {
 });
 
 /**
- * Maps redux actions to {@link Toolbox}'s React {@code Component} props.
+ * Maps actions to React component props.
  *
- * @param {Function} dispatch - The redux action {@code dispatch} function.
- * @private
+ * @param {Function} dispatch - Redux action dispatcher.
  * @returns {{
  *     _onRoomLock: Function,
  *     _onToggleAudioOnly: Function,
  *     _onToggleCameraFacingMode: Function,
  * }}
+ * @private
  */
 function _mapDispatchToProps(dispatch) {
     return {
@@ -454,20 +267,17 @@ function _mapDispatchToProps(dispatch) {
 }
 
 /**
- * Maps (parts of) the redux state to {@link Toolbox}'s React {@code Component}
- * props.
+ * Maps part of Redux store to React component props.
  *
- * @param {Object} state - The redux store/state.
- * @private
+ * @param {Object} state - Redux store.
  * @returns {{
  *     _audioOnly: boolean,
- *     _enabled: boolean,
  *     _locked: boolean
  * }}
+ * @private
  */
 function _mapStateToProps(state) {
     const conference = state['features/base/conference'];
-    const { enabled } = state['features/toolbox'];
 
     return {
         ...abstractMapStateToProps(state),
@@ -480,14 +290,6 @@ function _mapStateToProps(state) {
          * @type {boolean}
          */
         _audioOnly: Boolean(conference.audioOnly),
-
-        /**
-         * The indicator which determines whether the toolbox is enabled.
-         *
-         * @private
-         * @type {boolean}
-         */
-        _enabled: enabled,
 
         /**
          * The indicator which determines whether the conference is
