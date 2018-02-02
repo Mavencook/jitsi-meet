@@ -262,7 +262,7 @@ function _conferenceWillJoin({ getState }, next, action) {
  * {@code performEndCallAction}.
  * @returns {void}
  */
-function _onPerformEndCallAction({ callUUID }) {
+function _onPerformEndCallAction({ callUUID } = {}) {
     const { dispatch, getState } = this; // eslint-disable-line no-invalid-this
     const conference = getCurrentConference(getState);
 

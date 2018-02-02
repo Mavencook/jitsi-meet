@@ -339,6 +339,14 @@ function _visitNode(node, callback) {
         global.document = document;
     }
 
+<<<<<<< HEAD
+=======
+    // localStorage
+    if (typeof global.localStorage === 'undefined' || !global.localStorage.setItem) {
+        global.localStorage = new Storage('@jitsi-meet/');
+    }
+
+>>>>>>> WIP
     // location
     if (typeof global.location === 'undefined') {
         global.location = {

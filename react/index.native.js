@@ -52,7 +52,29 @@ type State = {
  *
  * @extends Component
  */
-class Root extends Component<Props, State> {
+export default class Root extends Component {
+    /**
+     * {@code Root} component's property types.
+     *
+     * @static
+     */
+    static propTypes = {
+        /**
+         * The URL, if any, with which the app was launched.
+         */
+        url: PropTypes.oneOfType([
+            PropTypes.object,
+            PropTypes.string
+        ]),
+
+        /**
+         * Whether the Welcome page is enabled. If {@code true}, the Welcome
+         * page is rendered when the {@link App} is not at a location (URL)
+         * identifying a Jitsi Meet conference/room.
+         */
+        welcomePageEnabled: PropTypes.bool
+    };
+
     /**
      * Initializes a new {@code Root} instance.
      *
@@ -149,8 +171,8 @@ class Root extends Component<Props, State> {
     }
 }
 
-// Register the main/root Component of JitsiMeetView.
-AppRegistry.registerComponent('App', () => Root);
+// Register the main/root Component.
+//AppRegistry.registerComponent('App', () => Root);
 
 // Register the main/root Component of IncomingCallView.
-AppRegistry.registerComponent('IncomingCallApp', () => IncomingCallApp);
+//AppRegistry.registerComponent('IncomingCallApp', () => IncomingCallApp);
