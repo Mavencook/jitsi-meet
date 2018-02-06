@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars, no-var */
 
+
 var config = {
     // Configuration
     //
@@ -304,7 +305,7 @@ var config = {
         enabled: true,
 
         // Use XEP-0215 to fetch STUN and TURN servers.
-        // useStunTurn: true,
+        useStunTurn: true,
 
         // The STUN servers that will be used in the peer to peer connections
         stunServers: [
