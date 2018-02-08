@@ -47,6 +47,50 @@ export class AbstractApp extends BaseApp<Props, *> {
      */
     componentWillMount() {
         super.componentWillMount();
+        this.init.then(() => {
+            
+            const { dispatch } = this._getStore();
+            
+            // hook up dispatch bridge
+            this.props.dispatchBridge && this.props.dispatchBridge(dispatch);
+            
+            // hook up store bridge
+            this.props.storeBridge && this._getStore().subscribe(() => this.props.storeBridge(this._getStore()))
+
+            dispatch(appWillMount(this));
+
+            // FIXME I believe it makes more sense for a middleware to dispatch
+            // localParticipantJoined on APP_WILL_MOUNT because the order of
+            // actions is important, not the call site. Moreover, we've got
+            // localParticipant business logic in the React Component
+            // (i.e. UI) AbstractApp now.
+            let localParticipant = {};
+
+            if (typeof APP === 'object') {
+                localParticipant = {
+                    avatarID: APP.settings.getAvatarId(),
+                    avatarURL: APP.settings.getAvatarUrl(),
+                    email: APP.settings.getEmail(),
+                    name: APP.settings.getDisplayName()
+                };
+            }
+
+            // Profile is the new React compatible settings.
+            const profile = getProfile(this._getStore().getState());
+
+            if (profile) {
+                localParticipant.email
+                    = profile.email || localParticipant.email;
+                localParticipant.name
+                    = profile.displayName || localParticipant.name;
+            }
+
+            // We set the initialized state here and not in the contructor to
+            // make sure that {@code componentWillMount} gets invoked before
+            // the app tries to render the actual app content.
+            this.setState({
+                appAsyncInitialized: true
+            });
 
         this._init.then(() => {
             // If a URL was explicitly specified to this React Component, then

@@ -82,7 +82,7 @@ class Thumbnail extends Component {
         const participantInLargeVideo
             = participantId === largeVideo.participantId;
         const videoMuted = !videoTrack || videoTrack.muted;
-
+        
         return (
             <Container
                 onClick = { this._onClick }
@@ -97,12 +97,14 @@ class Thumbnail extends Component {
                     avatarSize = { AVATAR_SIZE }
                     participantId = { participantId }
                     tintEnabled = { participantInLargeVideo }
+                    showAvatar = { participantNotInLargeVideo }
+                    showVideo = { true || participantNotInLargeVideo }
                     zOrder = { 1 } />
 
-                { participant.role === PARTICIPANT_ROLE.MODERATOR
+                { false && participant.role === PARTICIPANT_ROLE.MODERATOR
                     && <ModeratorIndicator /> }
 
-                { participant.dominantSpeaker
+                { false && participant.dominantSpeaker
                     && <DominantSpeakerIndicator /> }
 
                 <Container style = { styles.thumbnailIndicatorContainer }>
