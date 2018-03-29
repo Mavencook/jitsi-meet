@@ -196,7 +196,6 @@ class Conference extends Component<Props> {
                 <StatusBar
                     hidden = { true }
                     translucent = { true } />
-
                 {/*
                   * The LargeVideo is the lowermost stacking layer.
                   */}
@@ -231,9 +230,16 @@ class Conference extends Component<Props> {
                       * React Components depict the videos of the conference's
                       * participants.
                       */}
-                    <Filmstrip />
+                    
                 </View>
-
+                <Container style={{
+                    top: 60,
+                    width: '100%',
+                    flex: 1,
+                    position: 'absolute'
+                }}>
+                    <Filmstrip/>
+                </Container>
                 
 
                 {/*

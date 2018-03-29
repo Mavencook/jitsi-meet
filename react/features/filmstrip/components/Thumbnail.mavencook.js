@@ -2,11 +2,16 @@ import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 
+import { Thumbnail as JThumbnail } from './Thumbnail'
+
 import { Audio, MEDIA_TYPE } from '../../base/media';
 import {
     PARTICIPANT_ROLE,
     ParticipantView,
     pinParticipant
+} from '../../base/participants';
+import {
+    getParticipantDisplayName
 } from '../../base/participants';
 import { Container } from '../../base/react';
 import { getTrackByMediaTypeAndParticipant } from '../../base/tracks';
@@ -18,6 +23,9 @@ import {
     styles,
     VideoMutedIndicator
 } from './_';
+
+import { DisplayName } from './native/DisplayName'
+
 import { AVATAR_SIZE } from './styles';
 
 /**
@@ -25,7 +33,7 @@ import { AVATAR_SIZE } from './styles';
  *
  * @extends Component
  */
-export class Thumbnail extends Component {
+class Thumbnail extends JThumbnail {
     /**
      * Thumbnail component's property types.
      *
@@ -35,21 +43,10 @@ export class Thumbnail extends Component {
         _audioTrack: PropTypes.object,
         _largeVideo: PropTypes.object,
         _videoTrack: PropTypes.object,
+        _displayName: PropTypes.string,
         dispatch: PropTypes.func,
         participant: PropTypes.object
     };
-
-    /**
-     * Initializes new Video Thumbnail component.
-     *
-     * @param {Object} props - Component props.
-     */
-    constructor(props) {
-        super(props);
-
-        // Bind event handlers so they are only bound once for every instance.
-        this._onClick = this._onClick.bind(this);
-    }
 
     /**
      * Implements React's {@link Component#render()}.
@@ -62,6 +59,8 @@ export class Thumbnail extends Component {
         const largeVideo = this.props._largeVideo;
         const participant = this.props.participant;
         const videoTrack = this.props._videoTrack;
+        const displayName = this.props._displayName;
+        
 
         let style = styles.thumbnail;
 
@@ -84,52 +83,51 @@ export class Thumbnail extends Component {
         const participantNotInLargeVideo
             = participantId !== largeVideo.participantId;
         const videoMuted = !videoTrack || videoTrack.muted;
-        
+        const isLocal = participant.local
+        const isInstructor = displayName === 'instructor'
+
+
         return (
+            <Container onClick = { this._onClick } style = {{flex: 1}}>
             <Container
-                onClick = { this._onClick }
-                style = { style }>
+                    
+                    style = {{...style, position: 'relative'}}>
 
-                { renderAudio
-                    && <Audio
-                        stream
-                            = { audioTrack.jitsiTrack.getOriginalStream() } /> }
+                    { renderAudio
+                        && <Audio
+                            stream
+                                = { audioTrack.jitsiTrack.getOriginalStream() } /> }
 
-                <ParticipantView
-                    avatarSize = { AVATAR_SIZE }
-                    participantId = { participantId }
-                    showAvatar = { participantNotInLargeVideo }
-                    showVideo = { true || participantNotInLargeVideo }
-                    zOrder = { 1 } />
+                    <ParticipantView
+                        avatarSize = { AVATAR_SIZE }
+                        participantId = { participantId }
+                        showAvatar = { participantNotInLargeVideo }
+                        showVideo = { participantNotInLargeVideo }
+                        zOrder = { 1 } />
 
-                { false && participant.role === PARTICIPANT_ROLE.MODERATOR
-                    && <ModeratorIndicator /> }
+                    { false && participant.role === PARTICIPANT_ROLE.MODERATOR
+                        && <ModeratorIndicator /> }
 
-                { false && participant.dominantSpeaker
-                    && <DominantSpeakerIndicator /> }
 
-                <Container style = { styles.thumbnailIndicatorContainer }>
-                    { audioMuted
-                        && <AudioMutedIndicator /> }
+                    { false && participant.dominantSpeaker
+                        && <DominantSpeakerIndicator /> }
 
-                    { videoMuted
-                        && <VideoMutedIndicator /> }
+                    <Container style = { styles.thumbnailIndicatorContainer }>
+                        { audioMuted
+                            && <AudioMutedIndicator /> }
+
+                        { videoMuted
+                            && <VideoMutedIndicator /> }
+                            
+                    </Container>
                 </Container>
-
+                <DisplayName 
+                    isInstructor={isInstructor}
+                    isActive={!participantNotInLargeVideo} 
+                    displayName={ isLocal ? 'you' : displayName }
+                />
             </Container>
         );
-    }
-
-    /**
-     * Handles click/tap event on the thumbnail.
-     *
-     * @returns {void}
-     */
-    _onClick() {
-        const { dispatch, participant } = this.props;
-
-        // TODO The following currently ignores interfaceConfig.filmStripOnly.
-        dispatch(pinParticipant(participant.pinned ? null : participant.id));
     }
 }
 
@@ -156,8 +154,10 @@ function _mapStateToProps(state, ownProps) {
         = getTrackByMediaTypeAndParticipant(tracks, MEDIA_TYPE.AUDIO, id);
     const videoTrack
         = getTrackByMediaTypeAndParticipant(tracks, MEDIA_TYPE.VIDEO, id);
+    const displayName = participantName = getParticipantDisplayName(state, id);
 
     return {
+        _displayName: displayName,
         _audioTrack: audioTrack,
         _largeVideo: largeVideo,
         _videoTrack: videoTrack

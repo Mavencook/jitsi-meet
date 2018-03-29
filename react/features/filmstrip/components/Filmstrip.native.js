@@ -78,11 +78,10 @@ class Filmstrip extends Component<Props> {
                         this._sort(
                                 this.props._participants,
                                 isNarrowAspectRatio_)
-                            .map(p =>
-                                
-                                    <Thumbnail
+                            .map(p => <Thumbnail
                                         key = { p.id }
                                         participant = { p } />
+                                    
                             )
 
                         /* eslint-enable react/jsx-wrap-multilines */

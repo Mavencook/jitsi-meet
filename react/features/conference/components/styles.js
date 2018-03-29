@@ -13,6 +13,7 @@ export default createStyleSheet({
      * {@code Conference} style.
      */
     conference: fixAndroidViewClipping({
+        position: 'relative',
         alignSelf: 'stretch',
         backgroundColor: ColorPalette.appBackground,
         flex: 1
