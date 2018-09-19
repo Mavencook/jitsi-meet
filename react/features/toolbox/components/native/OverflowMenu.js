@@ -74,19 +74,6 @@ class OverflowMenu extends Component<Props> {
                 <AudioRouteButton { ...buttonProps } />
                 <ToggleCameraButton { ...buttonProps } />
                 <AudioOnlyButton { ...buttonProps } />
-                <RoomLockButton { ...buttonProps } />
-                <ClosedCaptionButton { ...buttonProps } />
-                {
-
-                    // Apple rejected our app because they claim requiring a
-                    // Dropbox account for recording is not acceptable.
-                    // Ddisable it until we can find a way around it.
-                    Platform.OS !== 'ios'
-                        && <RecordButton { ...buttonProps } />
-                }
-                <LiveStreamButton { ...buttonProps } />
-                <TileViewButton { ...buttonProps } />
-                <PictureInPictureButton { ...buttonProps } />
             </BottomSheet>
         );
     }
