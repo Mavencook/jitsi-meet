@@ -71,13 +71,6 @@ class Header extends Component<Props> {
                     _styles.headerOverlay,
                     this._getIOS10CompatiblePadding()
                 ] } >
-<<<<<<< HEAD
-=======
-                <StatusBar
-                    backgroundColor = { _styles.statusBar }
-                    barStyle = { this._getStatusBarContentColor() }
-                    translucent = { false } />
->>>>>>> [RN] Add color scheme support to header
                 <SafeAreaView>
                     <View
                         style = { [
