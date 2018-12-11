@@ -84,10 +84,6 @@ export default class Header extends Component<Props> {
                     styles.headerOverlay,
                     this._getIOS10CompatiblePadding()
                 ] } >
-                <StatusBar
-                    backgroundColor = { STATUSBAR_COLOR }
-                    barStyle = 'light-content'
-                    translucent = { false } />
                 <SafeAreaView>
                     <View
                         style = { [

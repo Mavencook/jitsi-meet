@@ -91,10 +91,6 @@ function _setFullScreen(fullScreen: boolean) {
     // throws on other platforms.
     if (Platform.OS === 'android') {
         fullScreen ? Immersive.on() : Immersive.off();
-    } else {
-        // On platforms other than Android go with whatever React Native itself
-        // supports.
-        StatusBar.setHidden(fullScreen, 'slide');
     }
 }
 
