@@ -248,14 +248,6 @@ class Conference extends AbstractConference<Props, *> {
 
         return (
             <Container style = { styles.conference }>
-                <StatusBar
-                    barStyle = 'light-content'
-                    hidden = { true }
-                    translucent = { true } />
-
-                <Chat />
-                <AddPeopleDialog />
-
                 {/*
                   * The LargeVideo is the lowermost stacking layer.
                   */
