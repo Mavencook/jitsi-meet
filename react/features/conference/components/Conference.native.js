@@ -15,6 +15,7 @@ import {
 import { TestConnectionInfo } from '../../base/testing';
 import { createDesiredLocalTracks } from '../../base/tracks';
 import { ConferenceNotification } from '../../calendar-sync';
+import { Chat } from '../../chat';
 import {
     Filmstrip,
     isFilmstripVisible,
@@ -245,7 +246,6 @@ class Conference extends Component<Props> {
 
         return (
             <Container style = { styles.conference }>
-            
                 {/*
                   * The LargeVideo is the lowermost stacking layer.
                   */

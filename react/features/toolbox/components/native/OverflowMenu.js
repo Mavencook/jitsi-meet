@@ -9,6 +9,7 @@ import {
     bottomSheetItemStylesCombined,
     hideDialog
 } from '../../../base/dialog';
+import { InviteButton } from '../../../invite';
 import { AudioRouteButton } from '../../../mobile/audio-mode';
 import { PictureInPictureButton } from '../../../mobile/picture-in-picture';
 import { LiveStreamButton, RecordButton } from '../../../recording';
