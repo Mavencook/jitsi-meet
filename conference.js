@@ -2666,7 +2666,6 @@ export default {
         });
 
         if (room) {
-            room.setDisplayName(formattedNickname);
             APP.UI.changeDisplayName(id, formattedNickname);
         }
     },
