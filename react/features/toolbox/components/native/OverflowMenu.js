@@ -20,6 +20,8 @@ import { TileViewButton } from '../../../video-layout';
 import AudioOnlyButton from './AudioOnlyButton';
 import ToggleCameraButton from './ToggleCameraButton';
 
+declare var __DEV__;
+
 /**
  * The type of the React {@code Component} props of {@link OverflowMenu}.
  */
