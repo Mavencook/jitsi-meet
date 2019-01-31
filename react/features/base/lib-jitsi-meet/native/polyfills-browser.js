@@ -388,7 +388,13 @@ function _visitNode(node, callback) {
 
     // WebRTC
     require('./polyfills-webrtc');
+
+    // CallStats
+    //
+    // Required by:
+    // - lib-jitsi-meet
     require('react-native-callstats/csio-polyfill');
+    global.callstats = require('react-native-callstats/callstats');
 
     // XMLHttpRequest
     if (global.XMLHttpRequest) {
