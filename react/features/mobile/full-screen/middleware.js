@@ -1,6 +1,5 @@
 // @flow
 
-import { StatusBar } from 'react-native';
 import { Immersive } from 'react-native-immersive';
 
 import { APP_WILL_MOUNT, APP_WILL_UNMOUNT } from '../../base/app';
