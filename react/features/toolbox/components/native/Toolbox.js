@@ -271,4 +271,5 @@ function _mapStateToProps(state: Object): Object {
     };
 }
 
+// $FlowExpectedError
 export default connect(_mapStateToProps)(Toolbox);
