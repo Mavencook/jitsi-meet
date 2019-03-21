@@ -2,9 +2,9 @@
 
 import React, { Component, type Node } from 'react';
 import { Platform, SafeAreaView, StatusBar, View } from 'react-native';
-import { connect } from 'react-redux';
 
 import { ColorSchemeRegistry } from '../../../color-scheme';
+import { connect } from '../../../redux';
 import { isDarkColor } from '../../../styles';
 
 import { HEADER_PADDING } from './headerstyles';
@@ -168,5 +168,4 @@ function _mapStateToProps(state) {
     };
 }
 
-// $FlowExpectedError
 export default connect(_mapStateToProps)(Header);
