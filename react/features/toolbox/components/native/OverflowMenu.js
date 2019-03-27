@@ -18,6 +18,7 @@ import { ClosedCaptionButton } from '../../../subtitles';
 import { TileViewButton } from '../../../video-layout';
 
 import AudioOnlyButton from './AudioOnlyButton';
+import RaiseHandButton from './RaiseHandButton';
 import ToggleCameraButton from './ToggleCameraButton';
 
 declare var __DEV__;
@@ -82,6 +83,23 @@ class OverflowMenu extends Component<Props> {
                 <AudioRouteButton { ...buttonProps } />
                 <ToggleCameraButton { ...buttonProps } />
                 <AudioOnlyButton { ...buttonProps } />
+<<<<<<< HEAD
+=======
+                <RoomLockButton { ...buttonProps } />
+                <ClosedCaptionButton { ...buttonProps } />
+                {
+
+                    // Apple rejected our app because they claim requiring a
+                    // Dropbox account for recording is not acceptable.
+                    // Ddisable it until we can find a way around it.
+                    (__DEV__ || Platform.OS !== 'ios')
+                        && <RecordButton { ...buttonProps } />
+                }
+                <LiveStreamButton { ...buttonProps } />
+                <TileViewButton { ...buttonProps } />
+                <InviteButton { ...buttonProps } />
+                <RaiseHandButton { ...buttonProps } />
+>>>>>>> [RN] Add button to toggle raised hand
             </BottomSheet>
         );
     }
