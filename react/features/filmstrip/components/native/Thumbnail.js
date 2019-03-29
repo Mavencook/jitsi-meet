@@ -1,6 +1,7 @@
 // @flow
 
 import React, { Component } from 'react';
+import { View } from 'react-native';
 import type { Dispatch } from 'redux';
 
 import { ColorSchemeRegistry } from '../../../base/color-scheme';
@@ -161,6 +162,7 @@ class Thumbnail extends Component<Props> {
                     tintEnabled = { participantInLargeVideo && !disableTint }
                     tintStyle = { _styles.activeThumbnailTint }
                     zOrder = { 1 } />
+                    
                 <Container style = { styles.thumbnailIndicatorContainer }>
                     { audioMuted
                         && <AudioMutedIndicator /> }
