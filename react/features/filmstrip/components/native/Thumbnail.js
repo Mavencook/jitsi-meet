@@ -17,6 +17,7 @@ import { Container } from '../../../base/react';
 import { connect } from '../../../base/redux';
 import { StyleType } from '../../../base/styles';
 import { getTrackByMediaTypeAndParticipant } from '../../../base/tracks';
+import { ConnectionIndicator } from '../../../connection-indicator';
 import { DisplayNameLabel } from '../../../display-name';
 import { RemoteVideoMenu } from '../../../remote-video-menu';
 
@@ -170,6 +171,14 @@ class Thumbnail extends Component<Props> {
                     zOrder = { 1 } />
 
                 { renderDisplayName && <DisplayNameLabel participantId = { participantId } /> }
+
+                <View
+                    style = { [
+                        styles.thumbnailTopIndicatorContainer,
+                        styles.thumbnailTopRightIndicatorContainer
+                    ] }>
+                    <ConnectionIndicator participantId = { participant.id } />
+                </View>
 
                 <Container style = { styles.thumbnailIndicatorContainer }>
                     { audioMuted
