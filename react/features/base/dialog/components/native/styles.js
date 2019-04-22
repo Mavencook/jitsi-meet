@@ -93,17 +93,18 @@ export const bottomSheetStyles = createStyleSheet({
      */
     overlay: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(127, 127, 127, 0.6)'
+        backgroundColor: 'rgba(50, 50, 50, 0.4)'
     },
 
     /**
      * Bottom sheet's base style.
      */
     sheet: {
-        backgroundColor: 'rgb(0, 3, 6)',
+        backgroundColor: `${ColorPalette.purple}aa`,
         flex: 1,
         paddingHorizontal: MD_ITEM_MARGIN_PADDING,
-        paddingVertical: 8
+        paddingVertical: 8,
+        paddingBottom: 50,
     }
 });
 

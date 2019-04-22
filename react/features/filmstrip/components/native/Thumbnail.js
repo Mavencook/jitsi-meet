@@ -150,13 +150,7 @@ class Thumbnail extends Component<Props> {
                     participantId = { participantId }
                     tintEnabled = { participantInLargeVideo && !disableTint }
                     zOrder = { 1 } />
-
-                { participant.role === PARTICIPANT_ROLE.MODERATOR
-                    && <ModeratorIndicator /> }
-
-                { participant.dominantSpeaker
-                    && <DominantSpeakerIndicator /> }
-
+                    
                 <Container style = { styles.thumbnailIndicatorContainer }>
                     { audioMuted
                         && <AudioMutedIndicator /> }

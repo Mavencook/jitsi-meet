@@ -92,7 +92,7 @@ class Toolbox extends Component<Props, State> {
             <Container
                 onLayout = { this._onLayout }
                 style = { styles.toolbox }
-                visible = { this.props._visible }>
+                visible = { true }>
                 { this._renderToolbar() }
             </Container>
         );
@@ -124,8 +124,7 @@ class Toolbox extends Component<Props, State> {
                     - hangupButtonSize
 
                     // Account for the horizontal margins of all buttons:
-                    - ((_BUTTON_COUNT + 1) * style.marginHorizontal * 2))
-                / _BUTTON_COUNT;
+                    - ((_BUTTON_COUNT + 1) * style.marginHorizontal * 2)) / _BUTTON_COUNT;
 
         // Well, don't return a non-positive button size.
         if (buttonSize <= 0) {

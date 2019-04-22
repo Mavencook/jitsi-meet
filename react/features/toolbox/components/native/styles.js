@@ -84,7 +84,8 @@ const styles = createStyleSheet({
      */
     toolbox: {
         flexDirection: 'column',
-        flexGrow: 0
+        flexGrow: 0,
+        marginBottom: 25
     },
 
     /**
