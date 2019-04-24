@@ -29,42 +29,13 @@ export const PLACEHOLDER_COLOR = ColorPalette.lightGrey;
  */
 export const bottomSheetStyles = createStyleSheet({
     /**
-     * Style for a backdrop which dims the view in the background. This view
-     * will also be clickable. The backgroundColor is applied to the overlay
-     * view instead, so the modal animation doesn't affect the backdrop.
-     */
-    backdrop: {
-        ...StyleSheet.absoluteFillObject
-    },
-
-    /**
      * Style for the container of the sheet.
      */
     container: {
-        alignItems: 'flex-end',
-        flex: 1,
-        flexDirection: 'row',
-        justifyContent: 'center'
-    },
-
-    /**
-     * Style for an overlay on top of which the sheet will be displayed.
-     */
-    overlay: {
-        ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(50, 50, 50, 0.4)'
-    },
-
-    /**
-     * Bottom sheet's base style.
-     */
-    sheet: {
-        backgroundColor: `${ColorPalette.purple}aa`,
-        flex: 1,
-        paddingHorizontal: MD_ITEM_MARGIN_PADDING,
-        paddingVertical: 8,
-        paddingBottom: 50,
-        backgroundColor: 'rgba(127, 127, 127, 0.6)'
+        bottom: 0,
+        left: 0,
+        position: 'absolute',
+        right: 0
     }
 });
 
