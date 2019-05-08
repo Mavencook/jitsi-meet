@@ -1,7 +1,6 @@
 // @flow
 
-import JitsiMeetJS from '../base/lib-jitsi-meet';
-
+import JitsiMeetJS, { JitsiRecordingConstants } from '../base/lib-jitsi-meet';
 import {
     hideNotification,
     showErrorNotification,
@@ -32,7 +31,8 @@ export function clearRecordingSessions() {
  * Signals that the pending recording notification should be removed from the
  * screen.
  *
- * @param {string} streamType - The type of the stream (e.g. file or stream).
+ * @param {string} streamType - The type of the stream ({@code 'file'} or
+ * {@code 'stream'}).
  * @returns {Function}
  */
 export function hidePendingRecordingNotification(streamType: string) {
@@ -53,7 +53,6 @@ export function hidePendingRecordingNotification(streamType: string) {
  * Sets the stream key last used by the user for later reuse.
  *
  * @param {string} streamKey - The stream key to set.
- * redux.
  * @returns {{
  *     type: SET_STREAM_KEY,
  *     streamKey: string
@@ -70,7 +69,8 @@ export function setLiveStreamKey(streamKey: string) {
  * Signals that the pending recording notification should be shown on the
  * screen.
  *
- * @param {string} streamType - The type of the stream (e.g. file or stream).
+ * @param {string} streamType - The type of the stream ({@code file} or
+ * {@code stream}).
  * @returns {Function}
  */
 export function showPendingRecordingNotification(streamType: string) {
@@ -110,7 +110,8 @@ export function showRecordingError(props: Object) {
  * Signals that the stopped recording notification should be shown on the
  * screen for a given period.
  *
- * @param {string} streamType - The type of the stream (e.g. file or stream).
+ * @param {string} streamType - The type of the stream ({@code file} or
+ * {@code stream}).
  * @returns {showNotification}
  */
 export function showStoppedRecordingNotification(streamType: string) {
@@ -138,6 +139,12 @@ export function showStoppedRecordingNotification(streamType: string) {
  * }}
  */
 export function updateRecordingSessionData(session: Object) {
+    const status = session.getStatus();
+    const timestamp
+        = status === JitsiRecordingConstants.status.ON
+            ? Date.now() / 1000
+            : undefined;
+
     return {
         type: RECORDING_SESSION_UPDATED,
         sessionData: {
@@ -145,7 +152,8 @@ export function updateRecordingSessionData(session: Object) {
             id: session.getID(),
             liveStreamViewURL: session.getLiveStreamViewURL(),
             mode: session.getMode(),
-            status: session.getStatus()
+            status,
+            timestamp
         }
     };
 }
@@ -156,8 +164,8 @@ export function updateRecordingSessionData(session: Object) {
  * passed.
  *
  * @param {?number} uid - The UID of the notification.
- * redux.
- * @param {string} streamType - The type of the stream (e.g. file or stream).
+ * @param {string} streamType - The type of the stream ({@code file} or
+ * {@code stream}).
  * @returns {{
  *     type: SET_PENDING_RECORDING_NOTIFICATION_UID,
  *     streamType: string,

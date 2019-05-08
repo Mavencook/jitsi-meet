@@ -18,9 +18,6 @@ var config = {
         // XMPP domain.
         domain: 'jitsi-meet.example.com',
 
-        // XMPP MUC domain. FIXME: use XEP-0030 to discover it.
-        muc: 'conference.jitsi-meet.example.com'
-
         // When using authentication, domain for guest users.
         // anonymousdomain: 'guest.example.com',
 
@@ -35,6 +32,9 @@ var config = {
 
         // Focus component domain. Defaults to focus.<domain>.
         // focus: 'focus.jitsi-meet.example.com',
+
+        // XMPP MUC domain. FIXME: use XEP-0030 to discover it.
+        muc: 'conference.jitsi-meet.example.com'
     },
 
     // BOSH URL. FIXME: use XEP-0156 to discover it.
@@ -171,6 +171,10 @@ var config = {
 
     // Whether to enable file recording or not.
     // fileRecordingsEnabled: false,
+    // Enable the dropbox integration.
+    // dropbox: {
+    //     appKey: '<APP_KEY>' // Specify your app key here.
+    // },
 
     // Whether to enable live streaming or not.
     // liveStreamingEnabled: false,
@@ -236,10 +240,6 @@ var config = {
 
     // Disable hiding of remote thumbnails when in a 1-on-1 conference call.
     // disable1On1Mode: false,
-
-    // The minimum value a video's height (or width, whichever is smaller) needs
-    // to be in order to be considered high-definition.
-    minHDHeight: 540,
 
     // Default language for the user interface.
     // defaultLanguage: 'en',
@@ -334,14 +334,19 @@ var config = {
         // backToP2PDelay: 5
     },
 
-    // A list of scripts to load as lib-jitsi-meet "analytics handlers".
-    // analyticsScriptUrls: [
-    //      "libs/analytics-ga.js", // google-analytics
-    //      "https://example.com/my-custom-analytics.js"
-    // ],
+    analytics: {
+        // The Google Analytics Tracking ID:
+        // googleAnalyticsTrackingId: 'your-tracking-id-UA-123456-1'
 
-    // The Google Analytics Tracking ID
-    // googleAnalyticsTrackingId = 'your-tracking-id-here-UA-123456-1',
+        // The Amplitude APP Key:
+        // amplitudeAPPKey: '<APP_KEY>'
+
+        // Array of script URLs to load as lib-jitsi-meet "analytics handlers".
+        // scriptURLs: [
+        //      "libs/analytics-ga.min.js", // google-analytics
+        //      "https://example.com/my-custom-analytics.js"
+        // ],
+    },
 
     // Information about the jitsi-meet instance we are connecting to, including
     // the user region as seen by the server.
@@ -400,6 +405,7 @@ var config = {
      externalConnectUrl
      firefox_fake_device
      googleApiApplicationClientID
+     googleApiIOSClientID
      iAmRecorder
      iAmSipGateway
      microsoftApiApplicationClientID

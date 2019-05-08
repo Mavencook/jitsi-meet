@@ -8,6 +8,7 @@ import {
     CLEAR_CALENDAR_INTEGRATION,
     SET_CALENDAR_AUTH_STATE,
     SET_CALENDAR_AUTHORIZATION,
+    SET_CALENDAR_ERROR,
     SET_CALENDAR_EVENTS,
     SET_CALENDAR_INTEGRATION,
     SET_CALENDAR_PROFILE_EMAIL,
@@ -62,6 +63,7 @@ isCalendarEnabled()
             // knownDomains. At this point, it should have already been
             // translated into the new state format (namely, base/known-domains)
             // and the app no longer needs it.
+            // $FlowFixMe
             if (typeof state.knownDomains !== 'undefined') {
                 return set(state, 'knownDomains', undefined);
             }
@@ -84,6 +86,9 @@ isCalendarEnabled()
 
         case SET_CALENDAR_AUTHORIZATION:
             return set(state, 'authorization', action.authorization);
+
+        case SET_CALENDAR_ERROR:
+            return set(state, 'error', action.error);
 
         case SET_CALENDAR_EVENTS:
             return set(state, 'events', action.events);

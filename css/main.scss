@@ -16,16 +16,12 @@
 
 /* Mixins END */
 
-/* Animations BEGIN */
-
-@import "animations";
-
 /* Animations END */
 
 /* Fonts BEGIN */
 
 @import 'font';
-@import 'font-awesome';
+
 /* Fonts END */
 
 /* Modules BEGIN */
@@ -56,7 +52,6 @@
 @import 'welcome_page';
 @import 'welcome_page_content';
 @import 'toolbars';
-@import 'side_toolbar_container';
 @import 'jquery.contextMenu';
 @import 'keyboard-shortcuts';
 @import 'redirect_page';
@@ -81,6 +76,7 @@
 @import 'modals/invite/add-people';
 @import 'deep-linking/main';
 @import 'transcription-subtitles';
+@import '_meetings_list.scss';
 @import 'navigate_section_list';
 @import 'third-party-branding/google';
 @import 'third-party-branding/microsoft';

@@ -4,9 +4,6 @@ const logger = require('jitsi-meet-logger').getLogger(__filename);
 
 const UI = {};
 
-import Chat from './side_pannels/chat/Chat';
-import SidePanels from './side_pannels/SidePanels';
-import SideContainerToggler from './side_pannels/SideContainerToggler';
 import messageHandler from './util/MessageHandler';
 import UIUtil from './util/UIUtil';
 import UIEvents from '../../service/UI/UIEvents';
@@ -21,9 +18,10 @@ import {
     getLocalParticipant,
     showParticipantJoinedNotification
 } from '../../react/features/base/participants';
-import { destroyLocalTracks } from '../../react/features/base/tracks';
+import { toggleChat } from '../../react/features/chat';
 import { openDisplayNamePrompt } from '../../react/features/display-name';
 import { setEtherpadHasInitialzied } from '../../react/features/etherpad';
+import { setFilmstripVisible } from '../../react/features/filmstrip';
 import {
     setNotificationsEnabled,
     showWarningNotification
@@ -89,11 +87,8 @@ const UIListeners = new Map([
         UIEvents.SHARED_VIDEO_CLICKED,
         () => sharedVideoManager && sharedVideoManager.toggleSharedVideo()
     ], [
-        UIEvents.TOGGLE_CHAT,
-        () => UI.toggleChat()
-    ], [
         UIEvents.TOGGLE_FILMSTRIP,
-        () => UI.handleToggleFilmstrip()
+        () => UI.toggleFilmstrip()
     ], [
         UIEvents.FOLLOW_ME_ENABLED,
         enabled => followMeHandler && followMeHandler.enableFollowMe(enabled)
@@ -157,7 +152,7 @@ UI.notifyKicked = function() {
     messageHandler.showError({
         hideErrorSupportLink: true,
         descriptionKey: 'dialog.kickMessage',
-        titleKey: 'dialog.sessTerminated'
+        titleKey: 'dialog.kickTitle'
     });
 };
 
@@ -175,27 +170,12 @@ UI.notifyConferenceDestroyed = function(reason) {
 };
 
 /**
- * Show chat error.
- * @param err the Error
- * @param msg
- */
-UI.showChatError = function(err, msg) {
-    if (!interfaceConfig.filmStripOnly) {
-        Chat.chatAddError(err, msg);
-    }
-};
-
-/**
  * Change nickname for the user.
  * @param {string} id user id
  * @param {string} displayName new nickname
  */
 UI.changeDisplayName = function(id, displayName) {
     VideoLayout.onDisplayNameChanged(id, displayName);
-
-    if (APP.conference.isLocalId(id) || id === 'localVideoContainer') {
-        Chat.setChatConversationMode(Boolean(displayName));
-    }
 };
 
 /**
@@ -255,11 +235,6 @@ UI.initConference = function() {
     followMeHandler = new FollowMe(APP.conference, UI);
 };
 
-/** *
- * Handler for toggling filmstrip
- */
-UI.handleToggleFilmstrip = () => UI.toggleFilmstrip();
-
 /**
  * Returns the shared document manager object.
  * @return {EtherpadManager} the shared document manager object
@@ -280,7 +255,6 @@ UI.start = function() {
     // Set the defaults for prompt dialogs.
     $.prompt.setDefaults({ persistent: false });
 
-    SideContainerToggler.init(eventEmitter);
     Filmstrip.init(eventEmitter);
 
     VideoLayout.init(eventEmitter);
@@ -298,26 +272,16 @@ UI.start = function() {
 
     if (interfaceConfig.filmStripOnly) {
         $('body').addClass('filmstrip-only');
-        Filmstrip.setFilmstripOnly();
         APP.store.dispatch(setNotificationsEnabled(false));
-    } else {
-        // Initialize recording mode UI.
-        if (config.iAmRecorder) {
-            VideoLayout.enableDeviceAvailabilityIcons(
-                APP.conference.getMyUserId(), false);
-
-            // in case of iAmSipGateway keep local video visible
-            if (!config.iAmSipGateway) {
-                VideoLayout.setLocalVideoVisible(false);
-            }
-
-            APP.store.dispatch(setToolboxEnabled(false));
-            APP.store.dispatch(setNotificationsEnabled(false));
-            UI.messageHandler.enablePopups(false);
+    } else if (config.iAmRecorder) {
+        // in case of iAmSipGateway keep local video visible
+        if (!config.iAmSipGateway) {
+            VideoLayout.setLocalVideoVisible(false);
         }
 
-        // Initialize side panels
-        SidePanels.init(eventEmitter);
+        APP.store.dispatch(setToolboxEnabled(false));
+        APP.store.dispatch(setNotificationsEnabled(false));
+        UI.messageHandler.enablePopups(false);
     }
 
     document.title = interfaceConfig.APP_NAME;
@@ -330,12 +294,6 @@ UI.registerListeners
     = () => UIListeners.forEach((value, key) => UI.addListener(key, value));
 
 /**
- * Unregister some UI event listeners.
- */
-UI.unregisterListeners
-    = () => UIListeners.forEach((value, key) => UI.removeListener(key, value));
-
-/**
  * Setup some DOM event listeners.
  */
 UI.bindEvents = () => {
@@ -343,7 +301,6 @@ UI.bindEvents = () => {
      *
      */
     function onResize() {
-        SideContainerToggler.resize();
         VideoLayout.resizeVideoArea();
     }
 
@@ -504,17 +461,12 @@ UI.updateUserStatus = (user, status) => {
 };
 
 /**
- * Toggles smileys in the chat.
- */
-UI.toggleSmileys = () => Chat.toggleSmileys();
-
-/**
  * Toggles filmstrip.
  */
 UI.toggleFilmstrip = function() {
-    // eslint-disable-next-line prefer-rest-params
-    Filmstrip.toggleFilmstrip(...arguments);
-    VideoLayout.resizeVideoArea(true, false);
+    const { visible } = APP.store.getState()['features/filmstrip'];
+
+    APP.store.dispatch(setFilmstripVisible(!visible));
 };
 
 /**
@@ -524,22 +476,9 @@ UI.toggleFilmstrip = function() {
 UI.isFilmstripVisible = () => Filmstrip.isFilmstripVisible();
 
 /**
- * @returns {true} if the chat panel is currently visible, and false otherwise.
+ * Toggles the visibility of the chat panel.
  */
-UI.isChatVisible = () => Chat.isVisible();
-
-/**
- * Toggles chat panel.
- */
-UI.toggleChat = () => UI.toggleSidePanel('chat_container');
-
-/**
- * Toggles the given side panel.
- *
- * @param {String} sidePanelId the identifier of the side panel to toggle
- */
-UI.toggleSidePanel = sidePanelId => SideContainerToggler.toggle(sidePanelId);
-
+UI.toggleChat = () => APP.store.dispatch(toggleChat());
 
 /**
  * Handle new user display name.
@@ -632,6 +571,15 @@ UI.addListener = function(type, listener) {
 };
 
 /**
+ * Removes the all listeners for all events.
+ *
+ * @returns {void}
+ */
+UI.removeAllListeners = function() {
+    eventEmitter.removeAllListeners();
+};
+
+/**
  * Removes the given listener for the given type of event.
  *
  * @param type the type of the event we're listening for
@@ -649,17 +597,7 @@ UI.removeListener = function(type, listener) {
  */
 UI.emitEvent = (type, ...options) => eventEmitter.emit(type, ...options);
 
-UI.clickOnVideo = function(videoNumber) {
-    const videos = $('#remoteVideos .videocontainer:not(#mixedstream)');
-    const videosLength = videos.length;
-
-    if (videosLength <= videoNumber) {
-        return;
-    }
-    const videoIndex = videoNumber === 0 ? 0 : videosLength - videoNumber;
-
-    videos[videoIndex].click();
-};
+UI.clickOnVideo = videoNumber => VideoLayout.togglePin(videoNumber);
 
 // Used by torture.
 UI.showToolbar = timeout => APP.store.dispatch(showToolbox(timeout));
@@ -749,17 +687,6 @@ UI.hideStats = function() {
     VideoLayout.hideStats();
 };
 
-/**
- * Add chat message.
- * @param {string} from user id
- * @param {string} displayName user nickname
- * @param {string} message message text
- * @param {number} stamp timestamp when message was created
- */
-// eslint-disable-next-line max-params
-UI.addMessage = function(from, displayName, message, stamp) {
-    Chat.updateChatConversation(from, displayName, message, stamp);
-};
 
 UI.notifyTokenAuthFailed = function() {
     messageHandler.showError({
@@ -1041,18 +968,6 @@ UI.setRemoteControlActiveStatus = function(participantID, isActive) {
  */
 UI.setLocalRemoteControlActiveChanged = function() {
     VideoLayout.setLocalRemoteControlActiveChanged();
-};
-
-/**
- * Remove media tracks and UI elements so the user no longer sees media in the
- * UI. The intent is to provide a feeling that the meeting has ended.
- *
- * @returns {void}
- */
-UI.removeLocalMedia = function() {
-    APP.store.dispatch(destroyLocalTracks());
-    VideoLayout.resetLargeVideo();
-    $('#videospace').hide();
 };
 
 // TODO: Export every function separately. For now there is no point of doing

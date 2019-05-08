@@ -1,4 +1,5 @@
-import PropTypes from 'prop-types';
+/* @flow */
+
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 
@@ -7,11 +8,100 @@ import { getInviteURL } from '../../../base/connection';
 import { translate } from '../../../base/i18n';
 import { isLocalParticipantModerator } from '../../../base/participants';
 
-import { getDialInfoPageURL } from '../../functions';
+import { _getDefaultPhoneNumber, getDialInfoPageURL } from '../../functions';
 import DialInNumber from './DialInNumber';
 import PasswordForm from './PasswordForm';
 
 const logger = require('jitsi-meet-logger').getLogger(__filename);
+
+/**
+ * The type of the React {@code Component} props of {@link InfoDialog}.
+ */
+type Props = {
+
+    /**
+     * Whether or not the current user can modify the current password.
+     */
+    _canEditPassword: boolean,
+
+    /**
+     * The JitsiConference for which to display a lock state and change the
+     * password.
+     */
+    _conference: Object,
+
+    /**
+     * The name of the current conference. Used as part of inviting users.
+     */
+    _conferenceName: string,
+
+    /**
+     * The current url of the conference to be copied onto the clipboard.
+     */
+    _inviteURL: string,
+
+    /**
+     * The current location url of the conference.
+     */
+    _locationURL: Object,
+
+    /**
+     * The value for how the conference is locked (or undefined if not locked)
+     * as defined by room-lock constants.
+     */
+    _locked: string,
+
+    /**
+     * The current known password for the JitsiConference.
+     */
+    _password: string,
+
+    /**
+     * The object representing the dialIn feature.
+     */
+    dialIn: Object,
+
+    /**
+     * Invoked to open a dialog for adding participants to the conference.
+     */
+    dispatch: Dispatch<*>,
+
+    /**
+     * The current known URL for a live stream in progress.
+     */
+    liveStreamViewURL: string,
+
+    /**
+     * Callback invoked when the dialog should be closed.
+     */
+    onClose: Function,
+
+    /**
+     * Callback invoked when a mouse-related event has been detected.
+     */
+    onMouseOver: Function,
+
+    /**
+     * Invoked to obtain translated strings.
+     */
+    t: Function
+};
+
+/**
+ * The type of the React {@code Component} state of {@link InfoDialog}.
+ */
+type State = {
+
+    /**
+     * Whether or not to show the password in editing mode.
+     */
+    passwordEditEnabled: boolean,
+
+    /**
+     * The conference dial-in number to display.
+     */
+    phoneNumber: ?string
+};
 
 /**
  * A React Component with the contents for a dialog that shows information about
@@ -19,77 +109,30 @@ const logger = require('jitsi-meet-logger').getLogger(__filename);
  *
  * @extends Component
  */
-class InfoDialog extends Component {
+class InfoDialog extends Component<Props, State> {
+    _copyElement: ?Object;
+
     /**
-     * {@code InfoDialog} component's property types.
+     * Implements React's {@link Component#getDerivedStateFromProps()}.
      *
-     * @static
+     * @inheritdoc
      */
-    static propTypes = {
-        /**
-         * Whether or not the current user can modify the current password.
-         */
-        _canEditPassword: PropTypes.bool,
+    static getDerivedStateFromProps(props, state) {
+        let phoneNumber = state.phoneNumber;
 
-        /**
-         * The JitsiConference for which to display a lock state and change the
-         * password.
-         *
-         * @type {JitsiConference}
-         */
-        _conference: PropTypes.object,
+        if (!state.phoneNumber && props.dialIn.numbers) {
+            const { defaultCountry, numbers } = props.dialIn;
 
-        /**
-         * The name of the current conference. Used as part of inviting users.
-         */
-        _conferenceName: PropTypes.string,
+            phoneNumber = _getDefaultPhoneNumber(numbers, defaultCountry);
+        }
 
-        /**
-         * The current url of the conference to be copied onto the clipboard.
-         */
-        _inviteURL: PropTypes.string,
-
-        /**
-         * The value for how the conference is locked (or undefined if not
-         * locked) as defined by room-lock constants.
-         */
-        _locked: PropTypes.string,
-
-        /**
-         * The current known password for the JitsiConference.
-         */
-        _password: PropTypes.string,
-
-        /**
-         * The object representing the dialIn feature.
-         */
-        dialIn: PropTypes.object,
-
-        /**
-         * Invoked to open a dialog for adding participants to the conference.
-         */
-        dispatch: PropTypes.func,
-
-        /**
-         * The current known URL for a live stream in progress.
-         */
-        liveStreamViewURL: PropTypes.string,
-
-        /**
-         * Callback invoked when the dialog should be closed.
-         */
-        onClose: PropTypes.func,
-
-        /**
-         * Callback invoked when a mouse-related event has been detected.
-         */
-        onMouseOver: PropTypes.func,
-
-        /**
-         * Invoked to obtain translated strings.
-         */
-        t: PropTypes.func
-    };
+        return {
+            // Exit edit mode when a password is set locally or remotely.
+            passwordEditEnabled: state.passwordEditEnabled && props._password
+                ? false : state.passwordEditEnabled,
+            phoneNumber
+        };
+    }
 
     /**
      * {@code InfoDialog} component's local state.
@@ -102,7 +145,7 @@ class InfoDialog extends Component {
      */
     state = {
         passwordEditEnabled: false,
-        phoneNumber: ''
+        phoneNumber: undefined
     };
 
     /**
@@ -111,14 +154,14 @@ class InfoDialog extends Component {
      * @param {Object} props - The read-only properties with which the new
      * instance is to be initialized.
      */
-    constructor(props) {
+    constructor(props: Props) {
         super(props);
 
         const { defaultCountry, numbers } = props.dialIn;
 
         if (numbers) {
             this.state.phoneNumber
-                = this._getDefaultPhoneNumber(numbers, defaultCountry);
+                = _getDefaultPhoneNumber(numbers, defaultCountry);
         }
 
         /**
@@ -139,28 +182,6 @@ class InfoDialog extends Component {
         this._onTogglePasswordEditState
             = this._onTogglePasswordEditState.bind(this);
         this._setCopyElement = this._setCopyElement.bind(this);
-    }
-
-    /**
-     * Implements React's {@link Component#componentWillReceiveProps()}. Invoked
-     * before this mounted component receives new props.
-     *
-     * @inheritdoc
-     * @param {Props} nextProps - New props component will receive.
-     */
-    componentWillReceiveProps(nextProps) {
-        if (!this.props._password && nextProps._password) {
-            this.setState({ passwordEditEnabled: false });
-        }
-
-        if (!this.state.phoneNumber && nextProps.dialIn.numbers) {
-            const { defaultCountry, numbers } = nextProps.dialIn;
-
-            this.setState({
-                phoneNumber:
-                    this._getDefaultPhoneNumber(numbers, defaultCountry)
-            });
-        }
     }
 
     /**
@@ -232,35 +253,6 @@ class InfoDialog extends Component {
     }
 
     /**
-     * Sets the internal state of which dial-in number to display.
-     *
-     * @param {Array<string>|Object} dialInNumbers - The array or object of
-     * numbers to choose a number from.
-     * @param {string} defaultCountry - The country code for the country
-     * whose phone number should display.
-     * @private
-     * @returns {string|null}
-     */
-    _getDefaultPhoneNumber(dialInNumbers, defaultCountry = 'US') {
-        if (Array.isArray(dialInNumbers)) {
-            // Dumbly return the first number if an array.
-            return dialInNumbers[0];
-        } else if (Object.keys(dialInNumbers).length > 0) {
-            const defaultNumbers = dialInNumbers[defaultCountry];
-
-            if (defaultNumbers) {
-                return defaultNumbers[0];
-            }
-
-            const firstRegion = Object.keys(dialInNumbers)[0];
-
-            return firstRegion && firstRegion[0];
-        }
-
-        return null;
-    }
-
-    /**
      * Generates the URL for the static dial in info page.
      *
      * @private
@@ -268,7 +260,8 @@ class InfoDialog extends Component {
      */
     _getDialInfoPageURL() {
         return getDialInfoPageURL(
-            encodeURIComponent(this.props._conferenceName));
+            encodeURIComponent(this.props._conferenceName),
+            this.props._locationURL);
     }
 
     /**
@@ -317,6 +310,8 @@ class InfoDialog extends Component {
         return this.props._inviteURL.replace(/^https?:\/\//i, '');
     }
 
+    _onClickURLText: (Object) => void;
+
     /**
      * Callback invoked when a displayed URL link is clicked to prevent actual
      * navigation from happening. The URL links have an href to display the
@@ -331,6 +326,8 @@ class InfoDialog extends Component {
         event.preventDefault();
     }
 
+    _onCopyInviteURL: () => void;
+
     /**
      * Callback invoked to copy the contents of {@code this._copyElement} to the
      * clipboard.
@@ -340,13 +337,19 @@ class InfoDialog extends Component {
      */
     _onCopyInviteURL() {
         try {
-            this._copyElement.select();
+            if (!this._copyElement) {
+                throw new Error('No element to copy from.');
+            }
+
+            this._copyElement && this._copyElement.select();
             document.execCommand('copy');
-            this._copyElement.blur();
+            this._copyElement && this._copyElement.blur();
         } catch (err) {
             logger.error('error when copying the text', err);
         }
     }
+
+    _onPasswordRemove: () => void;
 
     /**
      * Callback invoked to unlock the current JitsiConference.
@@ -357,6 +360,8 @@ class InfoDialog extends Component {
     _onPasswordRemove() {
         this._onPasswordSubmit('');
     }
+
+    _onPasswordSubmit: (string) => void;
 
     /**
      * Callback invoked to set a password on the current JitsiConference.
@@ -375,6 +380,8 @@ class InfoDialog extends Component {
             enteredPassword
         ));
     }
+
+    _onTogglePasswordEditState: () => void;
 
     /**
      * Toggles whether or not the password should currently be shown as being
@@ -500,6 +507,8 @@ class InfoDialog extends Component {
             && phoneNumber);
     }
 
+    _setCopyElement: () => void;
+
     /**
      * Sets the internal reference to the DOM/HTML element backing the React
      * {@code Component} input.
@@ -509,7 +518,7 @@ class InfoDialog extends Component {
      * @private
      * @returns {void}
      */
-    _setCopyElement(element) {
+    _setCopyElement(element: Object) {
         this._copyElement = element;
     }
 }
@@ -525,6 +534,7 @@ class InfoDialog extends Component {
  *     _conference: Object,
  *     _conferenceName: string,
  *     _inviteURL: string,
+ *     _locationURL: string,
  *     _locked: string,
  *     _password: string
  * }}
@@ -542,6 +552,7 @@ function _mapStateToProps(state) {
         _conference: conference,
         _conferenceName: room,
         _inviteURL: getInviteURL(state),
+        _locationURL: state['features/base/connection'].locationURL,
         _locked: locked,
         _password: password
     };

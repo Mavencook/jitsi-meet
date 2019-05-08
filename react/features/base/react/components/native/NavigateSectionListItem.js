@@ -1,6 +1,9 @@
 // @flow
 
 import React, { Component } from 'react';
+import Swipeout from 'react-native-swipeout';
+
+import { ColorPalette } from '../../../styles';
 
 import Container from './Container';
 import Text from './Text';
@@ -17,7 +20,18 @@ type Props = {
     /**
      * Function to be invoked when an Item is pressed. The Item's URL is passed.
      */
-    onPress: Function
+    onPress: ?Function,
+
+    /**
+     * Function to be invoked when secondary action was performed on an Item.
+     */
+    secondaryAction: ?Function,
+
+    /**
+     * Optional array of on-slide actions this list should support. For details
+     * see https://github.com/dancormier/react-native-swipeout.
+     */
+    slideActions?: Array<Object>
 }
 
 /**
@@ -101,41 +115,82 @@ export default class NavigateSectionListItem extends Component<Props> {
     }
 
     /**
+     * Renders the secondary action label.
+     *
+     * @private
+     * @returns {React$Node}
+     */
+    _renderSecondaryAction() {
+        const { secondaryAction } = this.props;
+
+        return (
+            <Container
+                onClick = { secondaryAction }
+                style = { styles.secondaryActionContainer }>
+                <Text style = { styles.secondaryActionLabel }>+</Text>
+            </Container>
+        );
+    }
+
+    /**
      * Renders the content of this component.
      *
      * @returns {ReactElement}
      */
     render() {
-        const { colorBase, lines, title } = this.props.item;
+        const { slideActions } = this.props;
+        const { id, colorBase, lines, title } = this.props.item;
         const avatarStyles = {
             ...styles.avatar,
             ...this._getAvatarColor(colorBase)
         };
+        let right;
+
+        // NOTE: The {@code Swipeout} component has an onPress prop encapsulated
+        // in the {@code right} array, but we need to bind it to the ID of the
+        // item too.
+
+        if (slideActions) {
+            right = [];
+            for (const slideAction of slideActions) {
+                right.push({
+                    backgroundColor: slideAction.backgroundColor,
+                    onPress: slideAction.onPress.bind(undefined, id),
+                    text: slideAction.text
+                });
+            }
+        }
 
         return (
-            <Container
-                onClick = { this.props.onPress }
-                style = { styles.listItem }
-                underlayColor = { UNDERLAY_COLOR }>
-                <Container style = { styles.avatarContainer }>
-                    <Container style = { avatarStyles }>
-                        <Text style = { styles.avatarContent }>
-                            {title.substr(0, 1).toUpperCase()}
-                        </Text>
+            <Swipeout
+                backgroundColor = { ColorPalette.transparent }
+                right = { right }>
+                <Container
+                    onClick = { this.props.onPress }
+                    style = { styles.listItem }
+                    underlayColor = { UNDERLAY_COLOR }>
+                    <Container style = { styles.avatarContainer }>
+                        <Container style = { avatarStyles }>
+                            <Text style = { styles.avatarContent }>
+                                {title.substr(0, 1).toUpperCase()}
+                            </Text>
+                        </Container>
                     </Container>
+                    <Container style = { styles.listItemDetails }>
+                        <Text
+                            numberOfLines = { 1 }
+                            style = { [
+                                styles.listItemText,
+                                styles.listItemTitle
+                            ] }>
+                            {title}
+                        </Text>
+                        {this._renderItemLines(lines)}
+                    </Container>
+                    { this.props.secondaryAction
+                        && this._renderSecondaryAction() }
                 </Container>
-                <Container style = { styles.listItemDetails }>
-                    <Text
-                        numberOfLines = { 1 }
-                        style = {{
-                            ...styles.listItemText,
-                            ...styles.listItemTitle
-                        }}>
-                        {title}
-                    </Text>
-                    {this._renderItemLines(lines)}
-                </Container>
-            </Container>
+            </Swipeout>
         );
     }
 }

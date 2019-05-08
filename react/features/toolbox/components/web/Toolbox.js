@@ -17,7 +17,7 @@ import {
     participantUpdated
 } from '../../../base/participants';
 import { getLocalVideoTrack, toggleScreensharing } from '../../../base/tracks';
-import { ChatCounter } from '../../../chat';
+import { ChatCounter, toggleChat } from '../../../chat';
 import { toggleDocument } from '../../../etherpad';
 import { openFeedbackDialog } from '../../../feedback';
 import {
@@ -41,7 +41,6 @@ import {
     openSettingsDialog
 } from '../../../settings';
 import { toggleSharedVideo } from '../../../shared-video';
-import { toggleChat } from '../../../side-panel';
 import { SpeakerStats } from '../../../speaker-stats';
 import { TileViewButton } from '../../../video-layout';
 import {
@@ -158,15 +157,9 @@ type Props = {
     _sharingVideo: boolean,
 
     /**
-     * Whether or not transcribing is enabled.
-     */
-    _transcribingEnabled: boolean,
-
-    /**
      * Flag showing whether toolbar is visible.
      */
     _visible: boolean,
-
 
     /**
      * Set with the buttons which this Toolbox should display.
@@ -287,15 +280,15 @@ class Toolbox extends Component<Props> {
      *
      * @inheritdoc
      */
-    componentWillReceiveProps(nextProps) {
+    componentDidUpdate(prevProps) {
         // Ensure the dialog is closed when the toolbox becomes hidden.
-        if (this.props._overflowMenuVisible && !nextProps._visible) {
+        if (prevProps._overflowMenuVisible && !this.props._visible) {
             this._onSetOverflowVisible(false);
         }
 
-        if (this.props._overflowMenuVisible
-            && !this.props._dialog
-            && nextProps._dialog) {
+        if (prevProps._overflowMenuVisible
+            && !prevProps._dialog
+            && this.props._dialog) {
             this._onSetOverflowVisible(false);
             this.props.dispatch(setToolbarHovered(false));
         }
@@ -323,7 +316,6 @@ class Toolbox extends Component<Props> {
             _chatOpen,
             _hideInviteButton,
             _overflowMenuVisible,
-            _transcribingEnabled,
             _raisedHand,
             _visible,
             _visibleButtons,
@@ -367,9 +359,8 @@ class Toolbox extends Component<Props> {
                             <ChatCounter />
                         </div> }
                     {
-                        _transcribingEnabled
-                        && this._shouldShowButton('closedcaptions')
-                        && <ClosedCaptionButton />
+                        this._shouldShowButton('closedcaptions')
+                            && <ClosedCaptionButton />
                     }
                 </div>
                 <div className = 'button-group-center'>
@@ -1039,11 +1030,7 @@ function _mapStateToProps(state) {
         callStatsID,
         iAmRecorder
     } = state['features/base/config'];
-    const {
-        transcribingEnabled
-    } = state['features/base/config'];
     const sharedVideoStatus = state['features/shared-video'].status;
-    const { current } = state['features/side-panel'];
     const {
         alwaysVisible,
         fullScreen,
@@ -1077,7 +1064,7 @@ function _mapStateToProps(state) {
     }
 
     return {
-        _chatOpen: current === 'chat_container',
+        _chatOpen: state['features/chat'].isOpen,
         _conference: conference,
         _desktopSharingEnabled: desktopSharingEnabled,
         _desktopSharingDisabledTooltipKey: desktopSharingDisabledTooltipKey,
@@ -1094,7 +1081,6 @@ function _mapStateToProps(state) {
         _overflowMenuVisible: overflowMenuVisible,
         _raisedHand: localParticipant.raisedHand,
         _screensharing: localVideo && localVideo.videoType === 'desktop',
-        _transcribingEnabled: transcribingEnabled,
         _sharingVideo: sharedVideoStatus === 'playing'
             || sharedVideoStatus === 'start'
             || sharedVideoStatus === 'pause',

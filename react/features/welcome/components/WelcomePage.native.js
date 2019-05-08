@@ -8,7 +8,6 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
-import Permissions from 'react-native-permissions';
 import { connect } from 'react-redux';
 
 import { translate } from '../../base/i18n';
@@ -58,15 +57,15 @@ class WelcomePage extends AbstractWelcomePage {
     }
 
     /**
-     * Implements React's {@link Component#componentWillMount()}. Invoked
-     * immediately before mounting occurs. Creates a local video track if none
+     * Implements React's {@link Component#componentDidMount()}. Invoked
+     * immediately after mounting occurs. Creates a local video track if none
      * is available and the camera permission was already granted.
      *
      * @inheritdoc
      * @returns {void}
      */
-    componentWillMount() {
-        super.componentWillMount();
+    componentDidMount() {
+        super.componentDidMount();
 
         const { dispatch } = this.props;
 
@@ -76,8 +75,8 @@ class WelcomePage extends AbstractWelcomePage {
             // Make sure we don't request the permission for the camera from
             // the start. We will, however, create a video track iff the user
             // already granted the permission.
-            Permissions.check('camera').then(response => {
-                response === 'authorized'
+            navigator.permissions.query({ name: 'camera' }).then(response => {
+                response === 'granted'
                     && dispatch(createDesiredLocalTracks(MEDIA_TYPE.VIDEO));
             });
         }

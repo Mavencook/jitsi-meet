@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#import <CoreText/CoreText.h>
 #import <Intents/Intents.h>
 
 #include <mach/mach_time.h>
@@ -23,6 +22,7 @@
 #import <React/RCTLinkingManager.h>
 #import <React/RCTRootView.h>
 
+#import "Dropbox.h"
 #import "Invite+Private.h"
 #import "InviteController+Private.h"
 #import "JitsiMeetView+Private.h"
@@ -51,35 +51,6 @@ RCTFatalHandler _RCTFatal = ^(NSError *error) {
         }
     }
 };
-
-/**
- * Helper function to dynamically load custom fonts. The `UIAppFonts` key in the
- * plist file doesn't work for frameworks, so fonts have to be manually loaded.
- */
-void loadCustomFonts(Class clazz) {
-    NSBundle *bundle = [NSBundle bundleForClass:clazz];
-    NSArray *fonts = [bundle objectForInfoDictionaryKey:@"JitsiMeetFonts"];
-
-    for (NSString *item in fonts) {
-        NSString *fontName = [item stringByDeletingPathExtension];
-        NSString *fontExt = [item pathExtension];
-        NSString *fontPath = [bundle pathForResource:fontName ofType:fontExt];
-        NSData *inData = [NSData dataWithContentsOfFile:fontPath];
-        CFErrorRef error;
-        CGDataProviderRef provider
-            = CGDataProviderCreateWithCFData((__bridge CFDataRef)inData);
-        CGFontRef font = CGFontCreateWithDataProvider(provider);
-
-        if (!CTFontManagerRegisterGraphicsFont(font, &error)) {
-            CFStringRef errorDescription = CFErrorCopyDescription(error);
-
-            NSLog(@"Failed to load font: %@", errorDescription);
-            CFRelease(errorDescription);
-        }
-        CFRelease(font);
-        CFRelease(provider);
-    }
-}
 
 /**
  * Helper function to register a fatal error handler for React. Our handler
@@ -117,6 +88,8 @@ void registerFatalErrorHandler() {
 
 @dynamic pictureInPictureEnabled;
 
+static NSString *_conferenceActivityType;
+
 static RCTBridgeWrapper *bridgeWrapper;
 
 /**
@@ -137,6 +110,8 @@ static NSMapTable<NSString *, JitsiMeetView *> *views;
     // Store launch options, will be used when we create the bridge.
     _launchOptions = [launchOptions copy];
 
+    [Dropbox setAppKey];
+
     return YES;
 }
 
@@ -147,44 +122,16 @@ static NSMapTable<NSString *, JitsiMeetView *> *views;
   continueUserActivity:(NSUserActivity *)userActivity
     restorationHandler:(void (^)(NSArray *restorableObjects))restorationHandler
 {
-    NSString *activityType = userActivity.activityType;
-
     // XXX At least twice we received bug reports about malfunctioning loadURL
     // in the Jitsi Meet SDK while the Jitsi Meet app seemed to functioning as
     // expected in our testing. But that was to be expected because the app does
     // not exercise loadURL. In order to increase the test coverage of loadURL,
     // channel Universal linking through loadURL.
-    if ([activityType isEqualToString:NSUserActivityTypeBrowsingWeb]
-            && [self loadURLInViews:userActivity.webpageURL]) {
+
+    id url = [self conferenceURLFromUserActivity:userActivity];
+
+    if (url && [self loadURLObjectInViews:url]) {
         return YES;
-    }
-
-    // Check for a CallKit intent.
-    if ([activityType isEqualToString:@"INStartAudioCallIntent"]
-            || [activityType isEqualToString:@"INStartVideoCallIntent"]) {
-        INIntent *intent = userActivity.interaction.intent;
-        NSArray<INPerson *> *contacts;
-        NSString *url;
-        BOOL startAudioOnly = NO;
-
-        if ([intent isKindOfClass:[INStartAudioCallIntent class]]) {
-            contacts = ((INStartAudioCallIntent *) intent).contacts;
-            startAudioOnly = YES;
-        } else if ([intent isKindOfClass:[INStartVideoCallIntent class]]) {
-            contacts = ((INStartVideoCallIntent *) intent).contacts;
-        }
-
-        if (contacts && (url = contacts.firstObject.personHandle.value)) {
-            // Load the URL contained in the handle.
-            [self loadURLObjectInViews:@{
-                @"config": @{
-                    @"startAudioOnly": @(startAudioOnly)
-                },
-                @"url": url
-            }];
-
-            return YES;
-        }
     }
 
     return [RCTLinkingManager application:application
@@ -192,10 +139,13 @@ static NSMapTable<NSString *, JitsiMeetView *> *views;
                        restorationHandler:restorationHandler];
 }
 
-+ (BOOL)application:(UIApplication *)application
++ (BOOL)application:(UIApplication *)app
             openURL:(NSURL *)url
-  sourceApplication:(NSString *)sourceApplication
-         annotation:(id)annotation {
+            options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options {
+    if ([Dropbox application:app openURL:url options:options]) {
+        return YES;
+    }
+
     // XXX At least twice we received bug reports about malfunctioning loadURL
     // in the Jitsi Meet SDK while the Jitsi Meet app seemed to functioning as
     // expected in our testing. But that was to be expected because the app does
@@ -205,10 +155,14 @@ static NSMapTable<NSString *, JitsiMeetView *> *views;
         return YES;
     }
 
-    return [RCTLinkingManager application:application
-                                  openURL:url
-                        sourceApplication:sourceApplication
-                               annotation:annotation];
+    return [RCTLinkingManager application:app openURL:url options:options];
+}
+
++ (BOOL)application:(UIApplication *)application
+            openURL:(NSURL *)url
+  sourceApplication:(NSString *)sourceApplication
+         annotation:(id)annotation {
+    return [self application:application openURL:url options:@{}];
 }
 
 #pragma mark Initializers
@@ -288,7 +242,7 @@ static NSMapTable<NSString *, JitsiMeetView *> *views;
     // conference again if the first invocation was followed by leaving the
     // conference. However, React and, respectively,
     // appProperties/initialProperties are declarative expressions i.e. one and
-    // the same URL will not trigger componentWillReceiveProps in the JavaScript
+    // the same URL will not trigger an automatic re-render in the JavaScript
     // source code. The workaround implemented bellow introduces imperativeness
     // in React Component props by defining a unique value per loadURLObject:
     // invocation.
@@ -323,6 +277,16 @@ static NSMapTable<NSString *, JitsiMeetView *> *views;
  */
 - (void)loadURLString:(NSString *)urlString {
     [self loadURLObject:urlString ? @{ @"url": urlString } : nil];
+}
+
+#pragma conferenceActivityType getter / setter
+
++ (NSString *)conferenceActivityType {
+    return _conferenceActivityType;
+}
+
++ (void) setConferenceActivityType:(NSString *)conferenceActivityType {
+    _conferenceActivityType = conferenceActivityType;
 }
 
 #pragma pictureInPictureEnabled getter / setter
@@ -379,6 +343,45 @@ static NSMapTable<NSString *, JitsiMeetView *> *views;
     return handled;
 }
 
++ (NSDictionary *)conferenceURLFromUserActivity:(NSUserActivity *)userActivity {
+    NSString *activityType = userActivity.activityType;
+
+    if ([activityType isEqualToString:NSUserActivityTypeBrowsingWeb]) {
+        // App was started by opening a URL in the browser
+        return @{ @"url" : userActivity.webpageURL.absoluteString };
+    } else if ([activityType isEqualToString:@"INStartAudioCallIntent"]
+               || [activityType isEqualToString:@"INStartVideoCallIntent"]) {
+        // App was started by a CallKit Intent
+        INIntent *intent = userActivity.interaction.intent;
+        NSArray<INPerson *> *contacts;
+        NSString *url;
+        BOOL startAudioOnly = NO;
+
+        if ([intent isKindOfClass:[INStartAudioCallIntent class]]) {
+            contacts = ((INStartAudioCallIntent *) intent).contacts;
+            startAudioOnly = YES;
+        } else if ([intent isKindOfClass:[INStartVideoCallIntent class]]) {
+            contacts = ((INStartVideoCallIntent *) intent).contacts;
+        }
+
+        if (contacts && (url = contacts.firstObject.personHandle.value)) {
+            return @{
+                @"config": @{@"startAudioOnly":@(startAudioOnly)},
+                @"url": url
+                };
+        }
+    } else if (_conferenceActivityType && [activityType isEqualToString:_conferenceActivityType]) {
+        // App was started by continuing a registered NSUserActivity (SiriKit, Handoff, ...)
+        NSString *url;
+
+        if ((url = userActivity.userInfo[@"url"])) {
+            return @{ @"url" : url };
+        }
+    }
+
+    return nil;
+}
+
 + (instancetype)viewForExternalAPIScope:(NSString *)externalAPIScope {
     return [views objectForKey:externalAPIScope];
 }
@@ -399,9 +402,6 @@ static NSMapTable<NSString *, JitsiMeetView *> *views;
         bridgeWrapper
             = [[RCTBridgeWrapper alloc] initWithLaunchOptions:_launchOptions];
         views = [NSMapTable strongToWeakObjectsMapTable];
-
-        // Dynamically load custom bundled fonts.
-        loadCustomFonts(self.class);
 
         // Register a fatal error handler for React.
         registerFatalErrorHandler();

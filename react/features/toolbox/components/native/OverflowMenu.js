@@ -1,16 +1,22 @@
 // @flow
 
 import React, { Component } from 'react';
+import { Platform } from 'react-native';
 import { connect } from 'react-redux';
 
-import { BottomSheet, hideDialog } from '../../../base/dialog';
+import {
+    BottomSheet,
+    bottomSheetItemStylesCombined,
+    hideDialog
+} from '../../../base/dialog';
 import { AudioRouteButton } from '../../../mobile/audio-mode';
 import { PictureInPictureButton } from '../../../mobile/picture-in-picture';
 import { LiveStreamButton, RecordButton } from '../../../recording';
 import { RoomLockButton } from '../../../room-lock';
+import { ClosedCaptionButton } from '../../../subtitles';
+import { TileViewButton } from '../../../video-layout';
 
 import AudioOnlyButton from './AudioOnlyButton';
-import { overflowMenuItemStyles } from './styles';
 import ToggleCameraButton from './ToggleCameraButton';
 
 /**
@@ -60,7 +66,7 @@ class OverflowMenu extends Component<Props> {
         const buttonProps = {
             afterClick: this._onCancel,
             showLabel: true,
-            styles: overflowMenuItemStyles
+            styles: bottomSheetItemStylesCombined
         };
 
         return (

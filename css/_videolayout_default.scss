@@ -80,15 +80,6 @@
             float: left;
             pointer-events: all;
         }
-
-        /**
-         * Need to overwrite the background for the top toolbar dark theme div
-         * wrapper needed before we're able to move all top toolbar indicators
-         * creation to react.
-         */
-        .ckAJgx {
-            background: none;
-        }
     }
 
     &__toolbar {
@@ -555,30 +546,6 @@
     height: 100%;
     width: 100%;
     object-fit: cover;
-}
-
-.noMic {
-    position: absolute;
-    border-radius: 8px;
-    z-index: $zindex1;
-    width: 100%;
-    height: 100%;
-    background-image: url("../images/noMic.png");
-    background-color: #000;
-    background-repeat: no-repeat;
-    background-position: center;
-}
-
-.noVideo {
-    position: absolute;
-    border-radius: 8px;
-    z-index: $zindex1;
-    width: 100%;
-    height: 100%;
-    background-image: url("../images/noVideo.png");
-    background-color: #000;
-    background-repeat: no-repeat;
-    background-position: center;
 }
 
 .videoMessageFilter {

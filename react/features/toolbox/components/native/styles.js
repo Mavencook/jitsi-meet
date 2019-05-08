@@ -1,6 +1,4 @@
 // @flow
-import { StyleSheet } from 'react-native';
-
 import { BoxModel, ColorPalette, createStyleSheet } from '../../../base/styles';
 
 import { HANGUP_BUTTON_SIZE } from '../../constants';
@@ -64,15 +62,11 @@ const styles = createStyleSheet({
      */
     toolbar: {
         alignItems: 'center',
-        bottom: 0,
-        flex: 0,
         flexDirection: 'row',
+        flexGrow: 0,
         justifyContent: 'center',
-        left: 0,
         marginBottom: BoxModel.margin / 2,
-        paddingHorizontal: BoxModel.margin,
-        position: 'absolute',
-        right: 0
+        paddingHorizontal: BoxModel.margin
     },
 
     /**
@@ -87,21 +81,11 @@ const styles = createStyleSheet({
 
     /**
      * The style of the root/top-level {@link Container} of {@link Toolbox}.
-     * This is the narrow layout version which locates the toolbar on top of
-     * the filmstrip, at the bottom of the screen.
      */
-    toolboxNarrow: {
+    toolbox: {
         flexDirection: 'column',
-        flexGrow: 1
-    },
-
-    /**
-     * The style of the root/top-level {@link Container} of {@link Toolbox}.
-     * This is the wide layout version which locates the toolbar at the bottom
-     * of the screen.
-     */
-    toolboxWide: {
-        ...StyleSheet.absoluteFillObject
+        flexGrow: 0,
+        marginBottom: 25
     },
 
     /**
@@ -146,50 +130,4 @@ export const toolbarButtonStyles = {
 export const toolbarToggledButtonStyles = {
     iconStyle: styles.whiteToolbarButtonIcon,
     style: styles.whiteToolbarButton
-};
-
-// Overflow menu:
-
-/**
- * Styles for the {@code OverflowMenu} items.
- *
- * These have been implemented as per the Material Design guidelines:
- * {@link https://material.io/guidelines/components/bottom-sheets.html}.
- */
-const overflowMenuStyles = createStyleSheet({
-    /**
-     * Container style for a {@code ToolboxItem} rendered in the
-     * {@code OverflowMenu}.
-     */
-    container: {
-        alignItems: 'center',
-        flexDirection: 'row',
-        height: 48
-    },
-
-    /**
-     * Style for the {@code Icon} element in a {@code ToolboxItem} rendered in
-     * the {@code OverflowMenu}.
-     */
-    icon: {
-        fontSize: 24
-    },
-
-    /**
-     * Style for the label in a {@code ToolboxItem} rendered in the
-     * {@code OverflowMenu}.
-     */
-    label: {
-        flexShrink: 1,
-        fontSize: 16,
-        marginLeft: 32,
-        opacity: 0.90
-    }
-});
-
-export const overflowMenuItemStyles = {
-    iconStyle: overflowMenuStyles.icon,
-    labelStyle: overflowMenuStyles.label,
-    style: overflowMenuStyles.container,
-    underlayColor: '#eee'
 };

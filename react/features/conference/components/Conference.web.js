@@ -8,13 +8,12 @@ import VideoLayout from '../../../../modules/UI/videolayout/VideoLayout';
 
 import { obtainConfig } from '../../base/config';
 import { connect, disconnect } from '../../base/connection';
-import { DialogContainer } from '../../base/dialog';
 import { translate } from '../../base/i18n';
+import { Chat } from '../../chat';
 import { Filmstrip } from '../../filmstrip';
 import { CalleeInfoContainer } from '../../invite';
 import { LargeVideo } from '../../large-video';
 import { NotificationsContainer } from '../../notifications';
-import { SidePanel } from '../../side-panel';
 import {
     LAYOUTS,
     getCurrentLayout,
@@ -183,7 +182,6 @@ class Conference extends Component<Props> {
      * @inheritdoc
      */
     componentWillUnmount() {
-        APP.UI.unregisterListeners();
         APP.UI.unbindEvents();
 
         FULL_SCREEN_EVENTS.forEach(name =>
@@ -224,9 +222,8 @@ class Conference extends Component<Props> {
                 </div>
 
                 { filmstripOnly || <Toolbox /> }
-                { filmstripOnly || <SidePanel /> }
+                { filmstripOnly || <Chat /> }
 
-                <DialogContainer />
                 <NotificationsContainer />
 
                 <CalleeInfoContainer />

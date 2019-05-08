@@ -351,6 +351,27 @@ export function createRecordingDialogEvent(dialogName, buttonName) {
 }
 
 /**
+ * Creates an event which indicates that an action related to recording has
+ * occured.
+ *
+ * @param {string} action - The action (e.g. 'start' or 'stop').
+ * @param {string} type - The recording type (e.g. 'file' or 'live').
+ * @param {number} value - The duration of the recording in seconds (for stop
+ * action).
+ * @returns {Object} The event in a format suitable for sending via
+ * sendAnalytics.
+ */
+export function createRecordingEvent(action, type, value) {
+    return {
+        action,
+        actionSubject: `recording.${type}`,
+        attributes: {
+            value
+        }
+    };
+}
+
+/**
  * Creates an event which specifies that the "confirm" button on the remote
  * mute dialog has been clicked.
  *
@@ -392,7 +413,7 @@ export function createRemoteVideoMenuButtonEvent(buttonName, attributes) {
 
 /**
  * Creates an event indicating that an action related to screen sharing
- * occurred (e.g. it was started or stopped).
+ * occurred (e.g. It was started or stopped).
  *
  * @param {string} action - The action which occurred.
  * @returns {Object} The event in a format suitable for sending via
@@ -445,7 +466,7 @@ export function createSharedVideoEvent(action, attributes = {}) {
  * Creates an event associated with a shortcut being pressed, released or
  * triggered. By convention, where appropriate an attribute named 'enable'
  * should be used to indicate the action which resulted by the shortcut being
- * pressed (e.g. whether screen sharing was enabled or disabled).
+ * pressed (e.g. Whether screen sharing was enabled or disabled).
  *
  * @param {string} shortcut - The identifier of the shortcut which produced
  * an action.
@@ -491,7 +512,7 @@ export function createStartAudioOnlyEvent(audioOnly) {
  *
  * @param {string} source - The source of the configuration, 'local' or
  * 'remote' depending on whether it comes from the static configuration (i.e.
- * config.js) or comes dynamically from Jicofo.
+ * {@code config.js}) or comes dynamically from Jicofo.
  * @param {boolean} audioMute - Whether the configuration requests that audio
  * is muted.
  * @param {boolean} videoMute - Whether the configuration requests that video
@@ -552,7 +573,7 @@ export function createSyncTrackStateEvent(mediaType, muted) {
  * Creates an event associated with a toolbar button being clicked/pressed. By
  * convention, where appropriate an attribute named 'enable' should be used to
  * indicate the action which resulted by the shortcut being pressed (e.g.
- * whether screen sharing was enabled or disabled).
+ * Whether screen sharing was enabled or disabled).
  *
  * @param {string} buttonName - The identifier of the toolbar button which was
  * clicked/pressed.
@@ -574,9 +595,9 @@ export function createToolbarEvent(buttonName, attributes = {}) {
  * Creates an event which indicates that a local track was muted.
  *
  * @param {string} mediaType - The track's media type ('audio' or 'video').
- * @param {string} reason - The reason the track was muted (e.g. it was
+ * @param {string} reason - The reason the track was muted (e.g. It was
  * triggered by the "initial mute" option, or a previously muted track was
- * replaced (e.g. when a new device was used)).
+ * replaced (e.g. When a new device was used)).
  * @param {boolean} muted - Whether the track was muted or unmuted.
  * @returns {Object} The event in a format suitable for sending via
  * sendAnalytics.

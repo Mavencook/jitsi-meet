@@ -23,7 +23,7 @@ type State = {
      * @type {boolean}
      */
     filmstripBecomingVisible: boolean
-}
+};
 
 /**
  * A container to hold video status labels, including recording status and
@@ -32,6 +32,19 @@ type State = {
  * @extends Component
  */
 class Labels extends AbstractLabels<Props, State> {
+    /**
+     * Updates the state for whether or not the filmstrip is transitioning to
+     * a displayed state.
+     *
+     * @inheritdoc
+     */
+    static getDerivedStateFromProps(props, prevState) {
+        return {
+            filmstripBecomingVisible: !prevState.filmstripBecomingVisible
+                && props._filmstripVisible
+        };
+    }
+
     /**
      * Initializes a new {@code Labels} instance.
      *
@@ -44,22 +57,6 @@ class Labels extends AbstractLabels<Props, State> {
         this.state = {
             filmstripBecomingVisible: false
         };
-    }
-
-    /**
-     * Updates the state for whether or not the filmstrip is being toggled to
-     * display after having being hidden.
-     *
-     * @inheritdoc
-     * @param {Object} nextProps - The read-only props which this Component will
-     * receive.
-     * @returns {void}
-     */
-    componentWillReceiveProps(nextProps) {
-        this.setState({
-            filmstripBecomingVisible: nextProps._filmstripVisible
-                && !this.props._filmstripVisible
-        });
     }
 
     /**
@@ -99,13 +96,13 @@ class Labels extends AbstractLabels<Props, State> {
         );
     }
 
-    _renderRecordingLabel: string => React$Element<*>
+    _renderLocalRecordingLabel: () => React$Element<*>;
 
-    _renderVideoQualityLabel: () => React$Element<*>
+    _renderRecordingLabel: string => React$Element<*>;
 
-    _renderTranscribingLabel: () => React$Element<*>
+    _renderTranscribingLabel: () => React$Element<*>;
 
-    _renderLocalRecordingLabel: () => React$Element<*>
+    _renderVideoQualityLabel: () => React$Element<*>;
 }
 
 export default connect(_mapStateToProps)(Labels);

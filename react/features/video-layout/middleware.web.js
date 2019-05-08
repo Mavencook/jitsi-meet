@@ -3,7 +3,7 @@
 import VideoLayout from '../../../modules/UI/videolayout/VideoLayout.js';
 import UIEvents from '../../../service/UI/UIEvents';
 
-import { CONFERENCE_JOINED } from '../base/conference';
+import { CONFERENCE_JOINED, CONFERENCE_WILL_LEAVE } from '../base/conference';
 import {
     DOMINANT_SPEAKER_CHANGED,
     PARTICIPANT_JOINED,
@@ -14,8 +14,10 @@ import {
 } from '../base/participants';
 import { MiddlewareRegistry } from '../base/redux';
 import { TRACK_ADDED } from '../base/tracks';
+import { SET_FILMSTRIP_VISIBLE } from '../filmstrip';
 
 import { SET_TILE_VIEW } from './actionTypes';
+import './middleware.any';
 
 declare var APP: Object;
 
@@ -36,6 +38,10 @@ MiddlewareRegistry.register(store => next => action => {
     switch (action.type) {
     case CONFERENCE_JOINED:
         VideoLayout.mucJoined();
+        break;
+
+    case CONFERENCE_WILL_LEAVE:
+        VideoLayout.reset();
         break;
 
     case PARTICIPANT_JOINED:
@@ -71,6 +77,11 @@ MiddlewareRegistry.register(store => next => action => {
             UIEvents.PINNED_ENDPOINT,
             action.participant.id,
             Boolean(action.participant.id));
+        break;
+
+    case SET_FILMSTRIP_VISIBLE:
+        VideoLayout.resizeVideoArea(true, false);
+        APP.UI.emitEvent(UIEvents.TOGGLED_FILMSTRIP, action.visible);
         break;
 
     case SET_TILE_VIEW:

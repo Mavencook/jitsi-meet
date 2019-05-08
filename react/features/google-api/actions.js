@@ -40,15 +40,11 @@ export function loadGoogleAPI(clientId: string) {
 
             return Promise.resolve();
         })
-        .then(() => dispatch({
-            type: SET_GOOGLE_API_STATE,
-            googleAPIState: GOOGLE_API_STATES.LOADED }))
+        .then(() => dispatch(setGoogleAPIState(GOOGLE_API_STATES.LOADED)))
         .then(() => googleApi.isSignedIn())
         .then(isSignedIn => {
             if (isSignedIn) {
-                dispatch({
-                    type: SET_GOOGLE_API_STATE,
-                    googleAPIState: GOOGLE_API_STATES.SIGNED_IN });
+                dispatch(setGoogleAPIState(GOOGLE_API_STATES.SIGNED_IN));
             }
         });
 }
@@ -113,6 +109,25 @@ export function requestLiveStreamsForYouTubeBroadcast(boundStreamID: string) {
                     selectedBoundStreamID: boundStreamID
                 };
             });
+}
+
+/**
+ * Sets the current Google API state.
+ *
+ * @param {number} googleAPIState - The state to be set.
+ * @param {Object} googleResponse - The last response from Google.
+ * @returns {{
+ *     type: SET_GOOGLE_API_STATE,
+ *     googleAPIState: number
+ * }}
+ */
+export function setGoogleAPIState(
+        googleAPIState: number, googleResponse: ?Object) {
+    return {
+        type: SET_GOOGLE_API_STATE,
+        googleAPIState,
+        googleResponse
+    };
 }
 
 /**
@@ -196,13 +211,8 @@ export function updateProfile() {
  */
 export function updateCalendarEvent(
         id: string, calendarId: string, location: string) {
-    return (dispatch: Dispatch<*>, getState: Function) => {
-
-        const { dialInNumbersUrl } = getState()['features/base/config'];
-        const text = getShareInfoText(location, dialInNumbersUrl !== undefined);
-
-        return googleApi.get()
-            .then(() =>
+    return (dispatch: Dispatch<*>, getState: Function) =>
+        getShareInfoText(getState(), location)
+            .then(text =>
                 googleApi._updateCalendarEntry(id, calendarId, location, text));
-    };
 }

@@ -5,10 +5,6 @@ import { View } from 'react-native';
 import { connect } from 'react-redux';
 
 import { Container } from '../../../base/react';
-import {
-    isNarrowAspectRatio,
-    makeAspectRatioAware
-} from '../../../base/responsive-ui';
 import { InviteButton } from '../../../invite';
 
 import AudioMuteButton from '../AudioMuteButton';
@@ -92,16 +88,11 @@ class Toolbox extends Component<Props, State> {
      * @returns {ReactElement}
      */
     render() {
-        const toolboxStyle
-            = isNarrowAspectRatio(this)
-                ? styles.toolboxNarrow
-                : styles.toolboxWide;
-
         return (
             <Container
                 onLayout = { this._onLayout }
-                style = { toolboxStyle }
-                visible = { this.props._visible }>
+                style = { styles.toolbox }
+                visible = { true }>
                 { this._renderToolbar() }
             </Container>
         );
@@ -133,8 +124,7 @@ class Toolbox extends Component<Props, State> {
                     - hangupButtonSize
 
                     // Account for the horizontal margins of all buttons:
-                    - ((_BUTTON_COUNT + 1) * style.marginHorizontal * 2))
-                / _BUTTON_COUNT;
+                    - ((_BUTTON_COUNT + 1) * style.marginHorizontal * 2)) / _BUTTON_COUNT;
 
         // Well, don't return a non-positive button size.
         if (buttonSize <= 0) {
@@ -242,4 +232,4 @@ function _mapStateToProps(state: Object): Object {
     };
 }
 
-export default connect(_mapStateToProps)(makeAspectRatioAware(Toolbox));
+export default connect(_mapStateToProps)(Toolbox);

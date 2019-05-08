@@ -13,12 +13,11 @@ import {
     MAX_DISPLAY_NAME_LENGTH,
     dominantSpeakerChanged,
     participantConnectionStatusChanged,
-    participantJoined,
-    participantLeft,
     participantPresenceChanged,
     participantRoleChanged,
     participantUpdated
 } from '../participants';
+import { endpointMessageReceived } from '../../subtitles';
 import { getLocalTracks, trackAdded, trackRemoved } from '../tracks';
 import { getJitsiMeetGlobalNS } from '../util';
 
@@ -52,6 +51,8 @@ import {
 } from './constants';
 import {
     _addLocalTracksToConference,
+    commonUserJoinedHandling,
+    commonUserLeftHandling,
     getCurrentConference,
     sendLocalParticipant
 } from './functions';
@@ -138,23 +139,19 @@ function _addConferenceListeners(conference, dispatch) {
         id => dispatch(dominantSpeakerChanged(id, conference)));
 
     conference.on(
+        JitsiConferenceEvents.ENDPOINT_MESSAGE_RECEIVED,
+        (...args) => dispatch(endpointMessageReceived(...args)));
+
+    conference.on(
         JitsiConferenceEvents.PARTICIPANT_CONN_STATUS_CHANGED,
         (...args) => dispatch(participantConnectionStatusChanged(...args)));
 
     conference.on(
         JitsiConferenceEvents.USER_JOINED,
-        (id, user) => !user.isHidden() && dispatch(participantJoined({
-            botType: user.getBotType(),
-            conference,
-            id,
-            name: user.getDisplayName(),
-            presence: user.getStatus(),
-            role: user.getRole()
-        })));
+        (id, user) => commonUserJoinedHandling({ dispatch }, conference, user));
     conference.on(
         JitsiConferenceEvents.USER_LEFT,
-        (id, user) => !user.isHidden()
-            && dispatch(participantLeft(id, conference)));
+        (id, user) => commonUserLeftHandling({ dispatch }, conference, user));
     conference.on(
         JitsiConferenceEvents.USER_ROLE_CHANGED,
         (...args) => dispatch(participantRoleChanged(...args)));

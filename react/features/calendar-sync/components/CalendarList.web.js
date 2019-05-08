@@ -1,11 +1,11 @@
 // @flow
 
-import Button from '@atlaskit/button';
 import Spinner from '@atlaskit/spinner';
-import React, { Component } from 'react';
+import React from 'react';
 import { connect } from 'react-redux';
 
 import { translate } from '../../base/i18n';
+import { AbstractPage } from '../../base/react';
 import { openSettingsDialog, SETTINGS_TABS } from '../../settings';
 import {
     createCalendarClickedEvent,
@@ -13,9 +13,10 @@ import {
 } from '../../analytics';
 
 import { refreshCalendar } from '../actions';
+import { ERRORS } from '../constants';
 import { isCalendarEnabled } from '../functions';
 
-import BaseCalendarList from './BaseCalendarList';
+import CalendarListContent from './CalendarListContent';
 
 declare var interfaceConfig: Object;
 
@@ -23,6 +24,12 @@ declare var interfaceConfig: Object;
  * The type of the React {@code Component} props of {@link CalendarList}.
  */
 type Props = {
+
+    /**
+     * The error object containing details about any error that has occurred
+     * while interacting with calendar integration.
+     */
+    _calendarError: ?Object,
 
     /**
      * Whether or not a calendar may be connected for fetching calendar events.
@@ -53,7 +60,7 @@ type Props = {
 /**
  * Component to display a list of events from the user's calendar.
  */
-class CalendarList extends Component<Props> {
+class CalendarList extends AbstractPage<Props> {
     /**
      * Initializes a new {@code CalendarList} instance.
      *
@@ -78,12 +85,60 @@ class CalendarList extends Component<Props> {
         const { disabled } = this.props;
 
         return (
-            BaseCalendarList
-                ? <BaseCalendarList
+            CalendarListContent
+                ? <CalendarListContent
                     disabled = { disabled }
-                    renderListEmptyComponent
+                    listEmptyComponent
                         = { this._getRenderListEmptyComponent() } />
                 : null
+        );
+    }
+
+    /**
+     * Returns a component for showing the error message related to calendar
+     * sync.
+     *
+     * @private
+     * @returns {React$Component}
+     */
+    _getErrorMessage() {
+        const { _calendarError = {}, t } = this.props;
+
+        let errorMessageKey = 'calendarSync.error.generic';
+        let showRefreshButton = true;
+        let showSettingsButton = true;
+
+        if (_calendarError.error === ERRORS.GOOGLE_APP_MISCONFIGURED) {
+            errorMessageKey = 'calendarSync.error.appConfiguration';
+            showRefreshButton = false;
+            showSettingsButton = false;
+        } else if (_calendarError.error === ERRORS.AUTH_FAILED) {
+            errorMessageKey = 'calendarSync.error.notSignedIn';
+            showRefreshButton = false;
+        }
+
+        return (
+            <div className = 'meetings-list-empty'>
+                <p className = 'description'>
+                    { t(errorMessageKey) }
+                </p>
+                <div className = 'calendar-action-buttons'>
+                    { showSettingsButton
+                        && <div
+                            className = 'button'
+                            onClick = { this._onOpenSettings }>
+                            { t('calendarSync.permissionButton') }
+                        </div>
+                    }
+                    { showRefreshButton
+                        && <div
+                            className = 'button'
+                            onClick = { this._onRefreshEvents }>
+                            { t('calendarSync.refresh') }
+                        </div>
+                    }
+                </div>
+            </div>
         );
     }
 
@@ -97,25 +152,31 @@ class CalendarList extends Component<Props> {
      * @returns {React$Component}
      */
     _getRenderListEmptyComponent() {
-        const { _hasIntegrationSelected, _hasLoadedEvents, t } = this.props;
+        const {
+            _calendarError,
+            _hasIntegrationSelected,
+            _hasLoadedEvents,
+            t
+        } = this.props;
 
-        if (_hasIntegrationSelected && _hasLoadedEvents) {
+        if (_calendarError) {
+            return this._getErrorMessage();
+        } else if (_hasIntegrationSelected && _hasLoadedEvents) {
             return (
-                <div className = 'navigate-section-list-empty'>
-                    <div>{ t('calendarSync.noEvents') }</div>
-                    <Button
-                        appearance = 'primary'
-                        className = 'calendar-button'
-                        id = 'connect_calendar_button'
-                        onClick = { this._onRefreshEvents }
-                        type = 'button'>
+                <div className = 'meetings-list-empty'>
+                    <p className = 'description'>
+                        { t('calendarSync.noEvents') }
+                    </p>
+                    <div
+                        className = 'button'
+                        onClick = { this._onRefreshEvents }>
                         { t('calendarSync.refresh') }
-                    </Button>
+                    </div>
                 </div>
             );
         } else if (_hasIntegrationSelected && !_hasLoadedEvents) {
             return (
-                <div className = 'navigate-section-list-empty'>
+                <div className = 'meetings-list-empty'>
                     <Spinner
                         invertColor = { true }
                         isCompleting = { false }
@@ -125,20 +186,17 @@ class CalendarList extends Component<Props> {
         }
 
         return (
-            <div className = 'navigate-section-list-empty'>
-                <p className = 'header-text-description'>
+            <div className = 'meetings-list-empty'>
+                <p className = 'description'>
                     { t('welcomepage.connectCalendarText', {
                         app: interfaceConfig.APP_NAME
                     }) }
                 </p>
-                <Button
-                    appearance = 'primary'
-                    className = 'calendar-button'
-                    id = 'connect_calendar_button'
-                    onClick = { this._onOpenSettings }
-                    type = 'button'>
+                <div
+                    className = 'button'
+                    onClick = { this._onOpenSettings }>
                     { t('welcomepage.connectCalendarButton') }
-                </Button>
+                </div>
             </div>
         );
     }
@@ -178,18 +236,21 @@ class CalendarList extends Component<Props> {
  * @param {Object} state - The Redux state.
  * @private
  * @returns {{
+ *     _calendarError: Object,
  *     _hasIntegrationSelected: boolean,
  *     _hasLoadedEvents: boolean
  * }}
  */
 function _mapStateToProps(state) {
     const {
+        error,
         events,
         integrationType,
         isLoadingEvents
     } = state['features/calendar-sync'];
 
     return {
+        _calendarError: error,
         _hasIntegrationSelected: Boolean(integrationType),
         _hasLoadedEvents: Boolean(events) || !isLoadingEvents
     };

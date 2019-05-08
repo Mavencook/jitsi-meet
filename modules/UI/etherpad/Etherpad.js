@@ -12,7 +12,7 @@ import Filmstrip from '../videolayout/Filmstrip';
  * Etherpad options.
  */
 const options = $.param({
-    showControns: true,
+    showControls: true,
     showChat: false,
     showLineNumbers: true,
     useMonospaceFont: false
@@ -87,6 +87,7 @@ class Etherpad extends LargeContainer {
         this.container.appendChild(iframe);
 
         iframe.onload = function() {
+            // eslint-disable-next-line no-self-assign
             document.domain = document.domain;
             bubbleIframeMouseMove(iframe);
 

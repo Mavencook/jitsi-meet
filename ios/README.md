@@ -1,12 +1,24 @@
 # Jitsi Meet SDK for iOS
 
-## Build
+The Jitsi Meet iOS SDK provides the same user experience as the Jitsi Meet app,
+in a customizable way which you can embed in your apps.
+
+## Usage
+
+There are 2 ways to integrate the SDK into your project:
+
+- Using CocoaPods
+- Building it yourself
+
+### Using CocoaPods
+
+Follow the instructions [here](https://github.com/jitsi/jitsi-meet-ios-sdk-releases/blob/master/README.md).
+
+### Builduing it yourself
 
 1. Install all required [dependencies](https://github.com/jitsi/jitsi-meet/blob/master/doc/mobile.md).
 
 2. `xcodebuild -workspace ios/jitsi-meet.xcworkspace -scheme JitsiMeet -destination='generic/platform=iOS' -configuration Release archive`
-
-## Install
 
 After successfully building Jitsi Meet SDK for iOS, copy
 `ios/sdk/JitsiMeet.framework` (if the path points to a symbolic link, follow the
@@ -125,7 +137,23 @@ continueUserActivity:(NSUserActivity *)userActivity
                continueUserActivity:userActivity
                  restorationHandler:restorationHandler];
 }
+```
 
+And also one of the following:
+
+```objc
+// See https://developer.apple.com/documentation/uikit/uiapplicationdelegate/1623073-application?language=objc
+- (BOOL)application:(UIApplication *)app
+            openURL:(NSURL *)url
+            options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options {
+  return [JitsiMeetView application:app
+                            openURL:url
+                            options: options];
+}
+```
+or
+```objc
+// See https://developer.apple.com/documentation/uikit/uiapplicationdelegate/1623112-application?language=objc
 - (BOOL)application:(UIApplication *)application
             openURL:(NSURL *)url
   sourceApplication:(NSString *)sourceApplication
@@ -137,6 +165,8 @@ continueUserActivity:(NSUserActivity *)userActivity
                          annotation:annotation];
 }
 ```
+
+NOTE: The latter is deprecated.
 
 ### JitsiMeetViewDelegate
 
@@ -212,3 +242,39 @@ resize `JitsiMeetView`.
 If `pictureInPictureEnabled` is set to `YES` or `delegate` implements
 `enterPictureInPicture:`, the in-call toolbar will render a button to afford the
 user to request entering Picture-in-Picture.
+
+## Dropbox integration
+
+To setup the Dropbox integration, follow these steps:
+
+1. Add the following to the app's Info.plist and change `<APP_KEY>` to your
+Dropbox app key:
+```
+<key>CFBundleURLTypes</key>
+<array>
+  <dict>
+    <key>CFBundleURLName</key>
+    <string></string>
+    <key>CFBundleURLSchemes</key>
+    <array>
+      <string>db-<APP_KEY></string>
+    </array>
+  </dict>
+</array>
+<key>LSApplicationQueriesSchemes</key>
+<array>
+  <string>dbapi-2</string>
+  <string>dbapi-8-emm</string>
+</array>
+```
+
+2. Add the following to the app's `AppDelegate`:
+```objc
+- (BOOL)application:(UIApplication *)app
+            openURL:(NSURL *)url
+            options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options {
+  return [JitsiMeetView application:app
+                            openURL:url
+                            options:options];
+}
+```

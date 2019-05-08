@@ -42,9 +42,11 @@ class ReactInstanceManagerHolder {
             new AppInfoModule(reactContext),
             new AudioModeModule(reactContext),
             new ExternalAPIModule(reactContext),
+            new LocaleDetector(reactContext),
             new PictureInPictureModule(reactContext),
             new ProximityModule(reactContext),
             new WiFiStatsModule(reactContext),
+            new org.jitsi.meet.sdk.dropbox.Dropbox(reactContext),
             new org.jitsi.meet.sdk.invite.InviteModule(reactContext),
             new org.jitsi.meet.sdk.net.NAT64AddrInfoModule(reactContext)
         );
@@ -119,12 +121,12 @@ class ReactInstanceManagerHolder {
                 .setApplication(application)
                 .setBundleAssetName("index.android.bundle")
                 .setJSMainModulePath("index.android")
+                .addPackage(new co.apptailor.googlesignin.RNGoogleSigninPackage())
                 .addPackage(new com.BV.LinearGradient.LinearGradientPackage())
                 .addPackage(new com.calendarevents.CalendarEventsPackage())
                 .addPackage(new com.corbt.keepawake.KCKeepAwakePackage())
                 .addPackage(new com.dylanvann.fastimage.FastImageViewPackage())
                 .addPackage(new com.facebook.react.shell.MainReactPackage())
-                .addPackage(new com.i18n.reactnativei18n.ReactNativeI18n())
                 .addPackage(new com.oblador.vectoricons.VectorIconsPackage())
                 .addPackage(new com.ocetnik.timer.BackgroundTimerPackage())
                 .addPackage(new com.oney.WebRTCModule.WebRTCModulePackage())

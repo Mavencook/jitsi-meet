@@ -30,6 +30,7 @@ import {
 import {
     LAYOUTS,
     getCurrentLayout,
+    setTileView,
     shouldDisplayTileView
 } from '../../../react/features/video-layout';
 /* eslint-enable no-unused-vars */
@@ -141,6 +142,9 @@ function SmallVideo(VideoLayout) {
     // Bind event handlers so they are only bound once for every instance.
     this._onPopoverHover = this._onPopoverHover.bind(this);
     this.updateView = this.updateView.bind(this);
+
+    this._onContainerClick = this._onContainerClick.bind(this);
+    this._onContainerDoubleClick = this._onContainerDoubleClick.bind(this);
 }
 
 /**
@@ -159,53 +163,6 @@ SmallVideo.prototype.getId = function() {
  */
 SmallVideo.prototype.isVisible = function() {
     return this.$container.is(':visible');
-};
-
-/**
- * Enables / disables the device availability icons for this small video.
- * @param {enable} set to {true} to enable and {false} to disable
- */
-SmallVideo.prototype.enableDeviceAvailabilityIcons = function(enable) {
-    if (typeof enable === 'undefined') {
-        return;
-    }
-
-    this.deviceAvailabilityIconsEnabled = enable;
-};
-
-/**
- * Sets the device "non" availability icons.
- * @param devices the devices, which will be checked for availability
- */
-SmallVideo.prototype.setDeviceAvailabilityIcons = function(devices) {
-    if (!this.deviceAvailabilityIconsEnabled) {
-        return;
-    }
-
-    if (!this.container) {
-        return;
-    }
-
-    const noMic = this.$container.find('.noMic');
-    const noVideo = this.$container.find('.noVideo');
-
-    noMic.remove();
-    noVideo.remove();
-    if (!devices.audio) {
-        this.container.appendChild(
-            document.createElement('div')).setAttribute('class', 'noMic');
-    }
-
-    if (!devices.video) {
-        this.container.appendChild(
-            document.createElement('div')).setAttribute('class', 'noVideo');
-    }
-
-    if (!devices.audio && !devices.video) {
-        noMic.css('background-position', '75%');
-        noVideo.css('background-position', '25%');
-        noVideo.css('background-color', 'transparent');
-    }
 };
 
 /**
@@ -789,6 +746,37 @@ SmallVideo.prototype.initBrowserSpecificProperties = function() {
 };
 
 /**
+ * Cleans up components on {@code SmallVideo} and removes itself from the DOM.
+ *
+ * @returns {void}
+ */
+SmallVideo.prototype.remove = function() {
+    logger.log('Remove thumbnail', this.id);
+
+    this.removeAudioLevelIndicator();
+
+    const toolbarContainer
+        = this.container.querySelector('.videocontainer__toolbar');
+
+    if (toolbarContainer) {
+        ReactDOM.unmountComponentAtNode(toolbarContainer);
+    }
+
+    this.removeConnectionIndicator();
+
+    this.removeDisplayName();
+
+    this.removeAvatar();
+
+    this._unmountIndicators();
+
+    // Remove whole container
+    if (this.container.parentNode) {
+        this.container.parentNode.removeChild(this.container);
+    }
+};
+
+/**
  * Helper function for re-rendering multiple react components of the small
  * video.
  *
@@ -867,12 +855,71 @@ SmallVideo.prototype.updateIndicators = function() {
 };
 
 /**
- * Pins the participant displayed by this thumbnail or unpins if already pinned.
+ * Callback invoked when the thumbnail is double clicked. Will pin the
+ * participant if in tile view.
  *
+ * @param {MouseEvent} event - The click event to intercept.
  * @private
  * @returns {void}
  */
-SmallVideo.prototype._togglePin = function() {
+SmallVideo.prototype._onContainerDoubleClick = function(event) {
+    if (this._pinningRequiresDoubleClick() && this._shouldTriggerPin(event)) {
+        APP.store.dispatch(pinParticipant(this.id));
+    }
+};
+
+/**
+ * Callback invoked when the thumbnail is clicked and potentially trigger
+ * pinning of the participant.
+ *
+ * @param {MouseEvent} event - The click event to intercept.
+ * @private
+ * @returns {void}
+ */
+SmallVideo.prototype._onContainerClick = function(event) {
+    const triggerPin = this._shouldTriggerPin(event)
+        && !this._pinningRequiresDoubleClick();
+
+    if (event.stopPropagation && triggerPin) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+
+    if (triggerPin) {
+        this.togglePin();
+    }
+
+    return false;
+};
+
+/**
+ * Returns whether or not a click event is targeted at certain elements which
+ * should not trigger a pin.
+ *
+ * @param {MouseEvent} event - The click event to intercept.
+ * @private
+ * @returns {boolean}
+ */
+SmallVideo.prototype._shouldTriggerPin = function(event) {
+    // TODO Checking the classes is a workround to allow events to bubble into
+    // the DisplayName component if it was clicked. React's synthetic events
+    // will fire after jQuery handlers execute, so stop propogation at this
+    // point will prevent DisplayName from getting click events. This workaround
+    // should be removeable once LocalVideo is a React Component because then
+    // the components share the same eventing system.
+    const $source = $(event.target || event.srcElement);
+
+    return $source.parents('.displayNameContainer').length === 0
+        && $source.parents('.popover').length === 0
+        && !event.target.classList.contains('popover');
+};
+
+/**
+ * Pins the participant displayed by this thumbnail or unpins if already pinned.
+ *
+ * @returns {void}
+ */
+SmallVideo.prototype.togglePin = function() {
     const pinnedParticipant
         = getPinnedParticipant(APP.store.getState()) || {};
     const participantIdToPin
@@ -880,6 +927,17 @@ SmallVideo.prototype._togglePin = function() {
             ? null : this.id;
 
     APP.store.dispatch(pinParticipant(participantIdToPin));
+};
+
+/**
+ * Returns whether or not clicking to pin the participant needs to be a double
+ * click instead of a single click.
+ *
+ * @private
+ * @returns {boolean}
+ */
+SmallVideo.prototype._pinningRequiresDoubleClick = function() {
+    return shouldDisplayTileView(APP.store.getState());
 };
 
 /**
@@ -910,5 +968,6 @@ SmallVideo.prototype._onPopoverHover = function(popoverIsHovered) {
     this._popoverIsHovered = popoverIsHovered;
     this.updateView();
 };
+
 
 export default SmallVideo;

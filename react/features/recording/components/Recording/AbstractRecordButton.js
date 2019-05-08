@@ -18,8 +18,7 @@ import {
 
 import { getActiveSession } from '../../functions';
 
-import StartRecordingDialog from './StartRecordingDialog';
-import StopRecordingDialog from './StopRecordingDialog';
+import { StartRecordingDialog, StopRecordingDialog } from './_';
 
 /**
  * The type of the React {@code Component} props of
@@ -107,11 +106,16 @@ export default class AbstractRecordButton<P: Props>
  * @private
  * @returns {{
  *     _isRecordingRunning: boolean,
+ *     disabledByFeatures: boolean,
  *     visible: boolean
  * }}
  */
 export function _mapStateToProps(state: Object, ownProps: Props): Object {
     let { visible } = ownProps;
+
+    // a button can be disabled/enabled only if enableFeaturesBasedOnToken
+    // is on
+    let disabledByFeatures;
 
     if (typeof visible === 'undefined') {
         // If the containing component provides the visible prop, that is one
@@ -119,22 +123,24 @@ export function _mapStateToProps(state: Object, ownProps: Props): Object {
         // its own to be visible or not.
         const isModerator = isLocalParticipantModerator(state);
         const {
-            dropbox = {},
             enableFeaturesBasedOnToken,
             fileRecordingsEnabled
         } = state['features/base/config'];
         const { features = {} } = getLocalParticipant(state);
 
         visible = isModerator
-            && fileRecordingsEnabled
-            && (!enableFeaturesBasedOnToken
-                || String(features.recording) === 'true')
-            && typeof dropbox.clientId === 'string';
+            && fileRecordingsEnabled;
+
+        if (enableFeaturesBasedOnToken) {
+            visible = visible && String(features.recording) === 'true';
+            disabledByFeatures = String(features.recording) === 'disabled';
+        }
     }
 
     return {
         _isRecordingRunning:
             Boolean(getActiveSession(state, JitsiRecordingConstants.mode.FILE)),
+        disabledByFeatures,
         visible
     };
 }
