@@ -9,6 +9,7 @@ import { InviteButton } from '../../../invite';
 
 import AudioMuteButton from '../AudioMuteButton';
 import HangupButton from '../HangupButton';
+import ToggleCameraButton from '../ToggleCameraButton';
 import OverflowMenuButton from './OverflowMenuButton';
 import styles, {
     hangupButtonStyles,
@@ -203,6 +204,9 @@ class Toolbox extends Component<Props, State> {
                     styles = { buttonStyles }
                     toggledStyles = { toggledButtonStyles } />
                 <VideoMuteButton
+                    styles = { buttonStyles }
+                    toggledStyles = { toggledButtonStyles } />
+                <ToggleCameraButton
                     styles = { buttonStyles }
                     toggledStyles = { toggledButtonStyles } />
                 <OverflowMenuButton

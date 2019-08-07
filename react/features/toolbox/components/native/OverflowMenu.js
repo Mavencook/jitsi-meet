@@ -17,7 +17,6 @@ import { ClosedCaptionButton } from '../../../subtitles';
 import { TileViewButton } from '../../../video-layout';
 
 import AudioOnlyButton from './AudioOnlyButton';
-import ToggleCameraButton from './ToggleCameraButton';
 
 /**
  * The type of the React {@code Component} props of {@link OverflowMenu}.
@@ -72,7 +71,6 @@ class OverflowMenu extends Component<Props> {
         return (
             <BottomSheet onCancel = { this._onCancel }>
                 <AudioRouteButton { ...buttonProps } />
-                <ToggleCameraButton { ...buttonProps } />
                 <AudioOnlyButton { ...buttonProps } />
             </BottomSheet>
         );
